@@ -12,7 +12,6 @@ func main() {
 		fmt.Println("Error:", err)
 		return
 	}
-
 	content := string(data)
 lines := strings.Split(content, "\n")
 
