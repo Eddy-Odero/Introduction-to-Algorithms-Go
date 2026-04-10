@@ -7,17 +7,20 @@ import (
 )
 
 func main() {
-	data, err := os.ReadFile("quiz.txt")
+	data, err := os.ReadFile("test.txt")
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
-	content := string(data)
-lines := strings.Split(content, "\n")
+	text := string(data)
 
-for i, line := range lines {
-	if strings.Contains(line, "Go") {
-		fmt.Println("Found in line", i+1, ":", line)
+	words := strings.Split(text, " ")
+
+	for i, word := range words {
+		if word == "(hex)" {
+			if i > 0 {
+				fmt.Println("Found (hex), previous word is:", words[i-1])
+			}
+		}
 	}
-}
 }
