@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"strconv"
 )
 
 func main() {
@@ -19,7 +20,15 @@ func main() {
 	for i, word := range words {
 		if word == "(hex)" {
 			if i > 0 {
-				fmt.Println("Found (hex), previous word is:", words[i-1])
+				hexValue := words[i-1]
+
+				decimal, err := strconv.ParseInt(hexValue, 16, 64)
+				if err != nil {
+					fmt.Println("Conversion error:", err)
+					continue
+				}
+
+				fmt.Println("Hex:", hexValue, "→ Decimal:", decimal)
 			}
 		}
 	}
