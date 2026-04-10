@@ -14,22 +14,31 @@ func main() {
 		return
 	}
 	text := string(data)
+words := strings.Split(text, " ")
+	var result []string
 
-	words := strings.Split(text, " ")
+	for i := 0; i < len(words); i++ {
 
-	for i, word := range words {
-		if word == "(hex)" {
-			if i > 0 {
-				hexValue := words[i-1]
+		if words[i] == "(hex)" {
+			// Convert previous word
+			if len(result) > 0 {
+				hexValue := result[len(result)-1]
 
 				decimal, err := strconv.ParseInt(hexValue, 16, 64)
-				if err != nil {
-					fmt.Println("Conversion error:", err)
-					continue
+				if err == nil {
+					// Replace last word with decimal
+					result[len(result)-1] = fmt.Sprintf("%d", decimal)
 				}
-
-				fmt.Println("Hex:", hexValue, "→ Decimal:", decimal)
 			}
+			// Skip adding "(hex)"
+			continue
 		}
+
+		// Normal word → add to result
+		result = append(result, words[i])
 	}
+
+	// Join back into sentence
+	final := strings.Join(result, " ")
+	fmt.Println(final)
 }
