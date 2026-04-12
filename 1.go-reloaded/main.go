@@ -11,20 +11,21 @@ func processLine(line string) string {
 	words := strings.Fields(line)
 	var result []string
 
+	bases := map[string]int{
+		"(hex)": 16,
+		"(bin)": 2,
+	}
+
 	for i := 0; i < len(words); i++ {
 
-		if words[i] == "(hex)" || words[i] == "(bin)" {
+		word := words[i]
+
+		// ---- Number conversions ----
+		if base, ok := bases[word]; ok {
 			if len(result) > 0 {
-				prevValue := result[len(result)-1]
+				prev := result[len(result)-1]
 
-				var base int
-				if words[i] == "(hex)" {
-					base = 16
-				} else if words[i] == "(bin)" {
-					base = 2
-				}
-
-				decimal, err := strconv.ParseInt(prevValue, base, 64)
+				decimal, err := strconv.ParseInt(prev, base, 64)
 				if err == nil {
 					result[len(result)-1] = fmt.Sprintf("%d", decimal)
 				}
@@ -32,7 +33,31 @@ func processLine(line string) string {
 			continue
 		}
 
-		result = append(result, words[i])
+		// ---- Text transformations ----
+		if len(result) > 0 {
+			prev := result[len(result)-1]
+
+			switch word {
+			case "(up)":
+				result[len(result)-1] = strings.ToUpper(prev)
+				continue
+
+			case "(low)":
+				result[len(result)-1] = strings.ToLower(prev)
+				continue
+
+			case "(cap)":
+				if len(prev) > 0 {
+					result[len(result)-1] =
+						strings.ToUpper(string(prev[0])) +
+						strings.ToLower(prev[1:])
+				}
+				continue
+			}
+		}
+
+		// Normal word
+		result = append(result, word)
 	}
 
 	return strings.Join(result, " ")
