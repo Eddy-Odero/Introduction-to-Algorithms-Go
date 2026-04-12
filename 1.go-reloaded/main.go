@@ -3,9 +3,40 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 	"strconv"
+	"strings"
 )
+
+func processLine(line string) string {
+	words := strings.Fields(line)
+	var result []string
+
+	for i := 0; i < len(words); i++ {
+
+		if words[i] == "(hex)" || words[i] == "(bin)" {
+			if len(result) > 0 {
+				prevValue := result[len(result)-1]
+
+				var base int
+				if words[i] == "(hex)" {
+					base = 16
+				} else if words[i] == "(bin)" {
+					base = 2
+				}
+
+				decimal, err := strconv.ParseInt(prevValue, base, 64)
+				if err == nil {
+					result[len(result)-1] = fmt.Sprintf("%d", decimal)
+				}
+			}
+			continue
+		}
+
+		result = append(result, words[i])
+	}
+
+	return strings.Join(result, " ")
+}
 
 func main() {
 	data, err := os.ReadFile("test.txt")
@@ -13,32 +44,11 @@ func main() {
 		fmt.Println("Error:", err)
 		return
 	}
-	text := string(data)
-words := strings.Split(text, " ")
-	var result []string
 
-	for i := 0; i < len(words); i++ {
+	lines := strings.Split(string(data), "\n")
 
-		if words[i] == "(hex)" {
-			// Convert previous word
-			if len(result) > 0 {
-				hexValue := result[len(result)-1]
-
-				decimal, err := strconv.ParseInt(hexValue, 16, 64)
-				if err == nil {
-					// Replace last word with decimal
-					result[len(result)-1] = fmt.Sprintf("%d", decimal)
-				}
-			}
-			// Skip adding "(hex)"
-			continue
-		}
-
-		// Normal word → add to result
-		result = append(result, words[i])
+	for _, line := range lines {
+		processed := processLine(line)
+		fmt.Println(processed)
 	}
-
-	// Join back into sentence
-	final := strings.Join(result, " ")
-	fmt.Println(final)
 }
