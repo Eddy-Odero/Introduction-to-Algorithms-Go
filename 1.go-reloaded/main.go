@@ -148,7 +148,7 @@ func fixPunctuation(words []string) string {
 	}
 
 	return strings.Join(final, " ")
-} 
+}
 // Full pipeline
 
 func processLine(line string) string {
