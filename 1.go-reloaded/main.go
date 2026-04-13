@@ -5,20 +5,32 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"unicode"
 )
+// Normalize tokens (fix "(up, 2)" split issue)
 
-func processLine(line string) string {
-	words := strings.Fields(line)
+func normalize(words []string) []string {
+	var res []string
 
-	// -------------------------
-	// PASS 1: Apply modifiers
-	// -------------------------
+	for i := 0; i < len(words); i++ {
+		// merge "(up," + "2)" → "(up, 2)"
+		if strings.HasSuffix(words[i], ",") && i+1 < len(words) && strings.HasSuffix(words[i+1], ")") {
+			res = append(res, words[i]+" "+words[i+1])
+			i++
+		} else {
+			res = append(res, words[i])
+		}
+	}
+	return res
+}
+// Apply modifiers
+func applyModifiers(words []string) []string {
 	var result []string
 
 	for i := 0; i < len(words); i++ {
 		word := words[i]
 
-		// ---------- (hex), (bin) ----------
+		// ---- HEX / BIN ----
 		if word == "(hex)" || word == "(bin)" {
 			if len(result) > 0 {
 				base := 16
@@ -34,15 +46,14 @@ func processLine(line string) string {
 			continue
 		}
 
-		// ---------- (up), (low), (cap) with optional number ----------
+		// ---- TEXT MODIFIERS ----
 		if strings.HasPrefix(word, "(up") ||
 			strings.HasPrefix(word, "(low") ||
 			strings.HasPrefix(word, "(cap") {
 
-			// default = 1 word
 			count := 1
 
-			// check for (up, 2)
+			// extract number if exists
 			if strings.Contains(word, ",") {
 				clean := strings.Trim(word, "()")
 				parts := strings.Split(clean, ",")
@@ -53,7 +64,6 @@ func processLine(line string) string {
 				}
 			}
 
-			// apply to last N words
 			for j := 0; j < count && len(result)-1-j >= 0; j++ {
 				idx := len(result) - 1 - j
 				w := result[idx]
@@ -61,10 +71,8 @@ func processLine(line string) string {
 				switch {
 				case strings.HasPrefix(word, "(up"):
 					result[idx] = strings.ToUpper(w)
-
 				case strings.HasPrefix(word, "(low"):
 					result[idx] = strings.ToLower(w)
-
 				case strings.HasPrefix(word, "(cap"):
 					if len(w) > 0 {
 						result[idx] =
@@ -79,69 +87,102 @@ func processLine(line string) string {
 		result = append(result, word)
 	}
 
-	// -------------------------
-	// PASS 2: a → an
-	// -------------------------
-	for i := 0; i < len(result)-1; i++ {
-		if strings.ToLower(result[i]) == "a" {
-			next := strings.ToLower(result[i+1])
-			if len(next) > 0 && strings.ContainsAny(string(next[0]), "aeiou") {
-				result[i] = "an"
+	return result
+}
+// Fix "a" → "an"
+func fixArticles(words []string) []string {
+	for i := 0; i < len(words)-1; i++ {
+		w := words[i]
+		next := words[i+1]
+
+		if strings.ToLower(w) == "a" && len(next) > 0 {
+			first := unicode.ToLower(rune(next[0]))
+			if strings.ContainsRune("aeiouh", first) {
+				if w == "A" {
+					words[i] = "An"
+				} else {
+					words[i] = "an"
+				}
 			}
 		}
 	}
-
-	// -------------------------
-	// PASS 3: punctuation
-	// -------------------------
-	var final []string
+	return words
+}
+// Fix punctuation + quotes
+func fixPunctuation(words []string) string {
 	punct := ".,!?;:"
+	var result []string
 
-	for i := 0; i < len(result); i++ {
-		w := result[i]
+	for i := 0; i < len(words); i++ {
+		w := words[i]
 
-		// handle punctuation
-		if len(w) > 0 && strings.ContainsAny(string(w[0]), punct) {
-			if len(final) > 0 {
-				final[len(final)-1] += w
+		// punctuation attaches to previous word
+		if len(w) > 0 && strings.ContainsRune(punct, rune(w[0])) {
+			if len(result) > 0 {
+				result[len(result)-1] += w
 			} else {
-				final = append(final, w)
+				result = append(result, w)
 			}
 			continue
 		}
 
-		final = append(final, w)
+		result = append(result, w)
 	}
 
-	// handle quotes '
-	for i := 0; i < len(final); i++ {
-		if final[i] == "'" && i+2 < len(final) {
-			j := i + 2
-			for j < len(final) && final[j] != "'" {
+	// ---- FIX QUOTES ----
+	var final []string
+	for i := 0; i < len(result); i++ {
+		if result[i] == "'" {
+			j := i + 1
+			for j < len(result) && result[j] != "'" {
 				j++
 			}
-			if j < len(final) {
-				// join inside quotes
-				joined := strings.Join(final[i+1:j], " ")
-				final = append(final[:i], append([]string{"'" + joined + "'"}, final[j+1:]...)...)
+			if j < len(result) {
+				inside := strings.Join(result[i+1:j], " ")
+				final = append(final, "'"+inside+"'")
+				i = j
+				continue
 			}
 		}
+		final = append(final, result[i])
 	}
 
 	return strings.Join(final, " ")
 }
+// Full pipeline
 
+func processLine(line string) string {
+	words := strings.Fields(line)
+	words = normalize(words)
+	words = applyModifiers(words)
+	words = fixArticles(words)
+	return fixPunctuation(words)
+}
+// MAIN (file handling)
 func main() {
-	data, err := os.ReadFile("test.txt")
+	if len(os.Args) != 3 {
+		fmt.Println("Usage: go run . input.txt output.txt")
+		return
+	}
+
+	inputFile := os.Args[1]
+	outputFile := os.Args[2]
+
+	data, err := os.ReadFile(inputFile)
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
 	lines := strings.Split(string(data), "\n")
+	var output []string
 
 	for _, line := range lines {
-		processed := processLine(line)
-		fmt.Println(processed)
+		output = append(output, processLine(line))
+	}
+
+	err = os.WriteFile(outputFile, []byte(strings.Join(output, "\n")), 0644)
+	if err != nil {
+		fmt.Println("Error writing file:", err)
 	}
 }
