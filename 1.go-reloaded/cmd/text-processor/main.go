@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"strings"
-
 	"text-processor/internal/processor"
 )
 
@@ -23,14 +22,14 @@ func main() {
 		return
 	}
 
-	lines := strings.Split(string(data), "\n")
+	lines := strings.Split(string(data), "\n") 
 
 	var result []string
 	for _, line := range lines {
 		result = append(result, processor.ProcessLine(line))
 	}
 
-	err = os.WriteFile(outputFile, []byte(strings.Join(result, "\n")), 0644)
+	err = os.WriteFile(outputFile, []byte(strings.Join(result, "\n")+"\n"), 0644)
 	if err != nil {
 		fmt.Println("Error writing output:", err)
 	}
