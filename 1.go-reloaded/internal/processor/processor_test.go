@@ -3,10 +3,20 @@ package processor
 import "testing"
 
 func TestProcessLine(t *testing.T) {
-	got := ProcessLine("hello , world !")
-	want := "hello, world!"
+	tests := []struct {
+		input string
+		want  string
+	}{
+		{"hello , world !", "hello, world!"},
+		{"hello world (up, 2)", "HELLO WORLD"},
+	}
 
-	if got != want {
-		t.Errorf("got %q, want %q", got, want)
+	for _, tt := range tests {
+		got := ProcessLine(tt.input)
+
+		if got != tt.want {
+			t.Errorf("input: %q | got: %q | want: %q",
+				tt.input, got, tt.want)
+		}
 	}
 }
