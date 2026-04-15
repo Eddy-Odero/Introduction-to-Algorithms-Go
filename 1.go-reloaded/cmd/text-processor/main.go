@@ -38,5 +38,12 @@ func main() {
 	if err != nil {
 		fmt.Println("Error writing output file:", err)
 	}
+	dataOut, err := os.ReadFile(outputFile)
+	if err != nil {
+		fmt.Println("Error reading output file:", err)
+		return
+	}
+
+	fmt.Println(string(dataOut))
 }
 // run (go run ./cmd/text-processor testdata/sample.txt testdata/result.txt) to test the project
