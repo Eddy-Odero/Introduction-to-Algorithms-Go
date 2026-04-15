@@ -32,6 +32,28 @@ func TestProcessLine(t *testing.T) {
 		{"Punctuation tests are ... kinda boring ,what do you think ?", "Punctuation tests are... kinda boring, what do you think?"},
 
 		{"it (cap) was the best (up, 3)", "It WAS THE BEST"},
+		// (cap)
+{"welcome to the brooklyn bridge (cap)", "welcome to the brooklyn Bridge"},
+{"this is so exciting (cap, 3)", "this Is So Exciting"},
+
+// (low, N)
+{"THIS IS SO EXCITING (low, 2)", "THIS IS so exciting"},
+
+// article before capital vowel
+{"a Elephant in the room", "an Elephant in the room"},
+{"a Orange", "an Orange"},
+
+// (cap) chained
+{"hello world (cap) (up)", "hello WORLD"},
+
+// punctuation groups at edges
+{"wow !!", "wow!!"},
+{"I was thinking ... You were right", "I was thinking... You were right"},
+{"... hello", "...hello"},
+{"hello ...", "hello..."},
+
+// empty string
+{"", ""},
 	}
 
 	for _, tt := range tests {

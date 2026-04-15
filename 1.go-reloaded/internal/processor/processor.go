@@ -139,7 +139,7 @@ func fixPunctuation(words []string) string {
 
 	for i := 1; i < len(out); i++ {
     curr := out[i]
-    prev := result[len(result)-1]
+    prev := out[i-1] // ← use out[i-1], not last char of result
 
     // punctuation attaches to previous word (no space)
     if strings.ContainsRune(punct, rune(curr[0])) {
@@ -147,13 +147,19 @@ func fixPunctuation(words []string) string {
         continue
     }
 
-    // punctuation at end of previous word → add space before next word
-    if strings.ContainsRune(punct, rune(prev)) {
-        result += " " + curr
+    // previous token was pure punctuation (e.g. "...") → no space
+    isPurePunct := true
+    for _, ch := range prev {
+        if !strings.ContainsRune(punct, ch) {
+            isPurePunct = false
+            break
+        }
+    }
+    if isPurePunct {
+        result += curr
         continue
     }
 
-    // normal case → add space
     result += " " + curr
 }
 	for {
