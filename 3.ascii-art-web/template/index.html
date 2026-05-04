@@ -2,46 +2,119 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>ASCII Art Web</title>
+    <title>ASCII Art Generator</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #0f1011, #07090e);
+            color: #f1f5f9;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .container {
+            width: 700px;
+            background: #111827;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        h1 {
+            text-align: center;
+            color: #38bdf8;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: none;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        .radio-group {
+            margin-top: 15px;
+        }
+
+        .radio-group label {
+            margin-right: 15px;
+        }
+
+        button {
+            margin-top: 20px;
+            width: 100%;
+            padding: 12px;
+            background: #38bdf8;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            color: #0f172a;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #0ea5e9;
+        }
+
+        .output {
+            margin-top: 30px;
+            background: #020617;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+        }
+
+        pre {
+            color: #22c55e;
+            font-size: 14px;
+        }
+
+        hr {
+            margin: 25px 0;
+            border: 1px solid #1f2937;
+        }
+    </style>
 </head>
 <body>
 
+<div class="container">
+
     <h1>ASCII Art Generator</h1>
 
-    <!-- FORM -->
     <form action="/ascii-art" method="POST">
 
-        <!-- TEXT INPUT -->
-        <label for="text">Enter text:</label><br>
-        <textarea name="text" id="text" rows="5" cols="50">{{.Text}}</textarea>
+        <label>Enter text:</label>
+        <textarea name="text" rows="4" placeholder="Type something...">{{.Text}}</textarea>
 
-        <br><br>
+        <div class="radio-group">
+            <p>Select style:</p>
 
-        <!-- RADIO BUTTONS -->
-        <p>Select style:</p>
+            <input type="radio" name="banner" value="standard" checked>
+            <label>Standard</label>
 
-        <input type="radio" id="standard" name="banner" value="standard" checked>
-        <label for="standard">Standard</label><br>
+            <input type="radio" name="banner" value="shadow">
+            <label>Shadow</label>
 
-        <input type="radio" id="shadow" name="banner" value="shadow">
-        <label for="shadow">Shadow</label><br>
+            <input type="radio" name="banner" value="thinkertoy">
+            <label>Thinkertoy</label>
+        </div>
 
-        <input type="radio" id="thinkertoy" name="banner" value="thinkertoy">
-        <label for="thinkertoy">Thinkertoy</label>
-
-        <br><br>
-
-        <button type="submit">Generate</button>
+        <button type="submit">Generate ASCII</button>
     </form>
 
     <hr>
 
-    <!-- OUTPUT SECTION -->
-    <h2>Output:</h2>
+    <div class="output">
+        <h2>Output</h2>
+        <pre>{{.Result}}</pre>
+    </div>
 
-    <pre>
-{{.Result}}
-    </pre>
+</div>
 
 </body>
 </html>
