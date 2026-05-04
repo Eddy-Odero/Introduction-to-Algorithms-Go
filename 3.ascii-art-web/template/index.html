@@ -2,17 +2,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Simple Form</title>
+    <title>ASCII Art Web</title>
 </head>
 <body>
 
-    <h1>Enter Your Name</h1>
+    <h1>ASCII Art Generator</h1>
 
-    <form action="/submit" method="POST">
-        <label for="name">Name:</label>
-        <input type="text" id="name" name="name" required>
-        <button type="submit">Submit</button>
+    <!-- FORM -->
+    <form action="/ascii-art" method="POST">
+
+        <!-- TEXT INPUT -->
+        <label for="text">Enter text:</label><br>
+        <textarea name="text" id="text" rows="5" cols="50">{{.Text}}</textarea>
+
+        <br><br>
+
+        <!-- RADIO BUTTONS -->
+        <p>Select style:</p>
+
+        <input type="radio" id="standard" name="banner" value="standard" checked>
+        <label for="standard">Standard</label><br>
+
+        <input type="radio" id="shadow" name="banner" value="shadow">
+        <label for="shadow">Shadow</label><br>
+
+        <input type="radio" id="thinkertoy" name="banner" value="thinkertoy">
+        <label for="thinkertoy">Thinkertoy</label>
+
+        <br><br>
+
+        <button type="submit">Generate</button>
     </form>
+
+    <hr>
+
+    <!-- OUTPUT SECTION -->
+    <h2>Output:</h2>
+
+    <pre>
+{{.Result}}
+    </pre>
 
 </body>
 </html>
