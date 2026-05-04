@@ -4,15 +4,19 @@ import (
 	"fmt"
 	"net/http"
 )
-func hello(w http.ResponseWriter, r *http.Request) {
-	name := r.URL.Query().Get("name")
-	if name == ""{
-		name = "Eddy"
+func home(w http.ResponseWriter, r * http.Request){
+		http.ServeFile(w,r, "template/index.html")
 	}
-	fmt.Fprintf(w, "Hello %s", name)
-}
+	func submit(w http.ResponseWriter, r * http.Request){
+		if r.Method !=  http.MethodPost{
+			http.Error(w , "Invalid Request", http.StatusMethodNotAllowed)
+			return 
+		}
+		name := r.FormValue("name")
+		fmt.Fprintf(w, "Hello :%s", name)
+	}
 func main(){
-	http.HandleFunc("/",hello)
+	http.HandleFunc("/", home)
+	http.HandleFunc("/submit",submit)
 	http.ListenAndServe(":8080", nil)
-
 }
