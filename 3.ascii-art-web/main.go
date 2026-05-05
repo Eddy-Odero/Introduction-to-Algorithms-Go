@@ -28,7 +28,6 @@ func home(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.Execute(w, data)
 }
-
 func asciiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
@@ -49,9 +48,15 @@ func asciiHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if banner != "standard" && banner != "shadow" && banner != "thinkertoy" {
+		data.Error = "Invalid banner selected"
+		tmpl.Execute(w, data)
+		return
+	}
+	
 	lines, err := ascii.LoadBanner("banners/" + banner + ".txt")
 	if err != nil {
-		data.Error = "Invalid banner file"
+		data.Error = "Error loading banner file"
 		tmpl.Execute(w, data)
 		return
 	}
@@ -61,7 +66,6 @@ func asciiHandler(w http.ResponseWriter, r *http.Request) {
 
 	tmpl.Execute(w, data)
 }
-
 func main() {
 	http.HandleFunc("/", home)
 	http.HandleFunc("/ascii-art", asciiHandler)

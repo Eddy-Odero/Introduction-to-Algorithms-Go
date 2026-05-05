@@ -1,5 +1,6 @@
 package ascii
 
+
 func BuildFont(lines []string) map[rune][]string {
 	font := make(map[rune][]string)
 
