@@ -9,26 +9,53 @@ func TestLoadBanner(t *testing.T) {
 	}
 }
 
-func TestBuildFont(t *testing.T) {
-	lines, err := LoadBanner("../banners/standard.txt")
-	if err != nil {
-		t.Fatalf("Could not load banner: %v", err)
-	}
-
-	font := BuildFont(lines)
-
-	if len(font) == 0 {
-		t.Errorf("Font map is empty")
+func TestLoadBanner_InvalidFile(t *testing.T) {
+	_, err := LoadBanner("invalid.txt")
+	if err == nil {
+		t.Errorf("Expected error for invalid file")
 	}
 }
 
-func TestGenerate(t *testing.T) {
+func TestGenerate_SingleChar(t *testing.T) {
 	lines, _ := LoadBanner("../banners/standard.txt")
 	font := BuildFont(lines)
 
 	result := Generate("A", font)
 
 	if result == "" {
-		t.Errorf("Generate returned empty result")
+		t.Errorf("Expected output, got empty string")
+	}
+}
+
+func TestGenerate_EmptyInput(t *testing.T) {
+	lines, _ := LoadBanner("../banners/standard.txt")
+	font := BuildFont(lines)
+
+	result := Generate("", font)
+
+	if result != "" {
+		t.Errorf("Expected empty result for empty input")
+	}
+}
+
+func TestGenerate_MultipleChars(t *testing.T) {
+	lines, _ := LoadBanner("../banners/standard.txt")
+	font := BuildFont(lines)
+
+	result := Generate("AB", font)
+
+	if len(result) == 0 {
+		t.Errorf("Expected output for multiple characters")
+	}
+}
+
+func TestGenerate_UnsupportedChar(t *testing.T) {
+	lines, _ := LoadBanner("../banners/standard.txt")
+	font := BuildFont(lines)
+
+	result := Generate("A☺", font)
+
+	if result == "" {
+		t.Errorf("Expected partial output, got empty")
 	}
 }

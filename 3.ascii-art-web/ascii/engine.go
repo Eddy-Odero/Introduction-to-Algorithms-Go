@@ -1,5 +1,5 @@
 package ascii
-
+import "strings"
 
 func BuildFont(lines []string) map[rune][]string {
 	font := make(map[rune][]string)
@@ -24,24 +24,22 @@ func BuildFont(lines []string) map[rune][]string {
 	return font
 }
 func Generate(text string, font map[rune][]string) string {
+	if text == "" {
+		return ""
+	}
+
 	result := make([]string, 8)
 
-	for _, c := range text {
-
-		ascii, ok := font[c]
+	for _, char := range text {
+		asciiChar, ok := font[char]
 		if !ok {
 			continue
 		}
 
 		for i := 0; i < 8; i++ {
-			result[i] += ascii[i]
+			result[i] += asciiChar[i]
 		}
 	}
 
-	out := ""
-	for _, line := range result {
-		out += line + "\n"
-	}
-
-	return out
+	return strings.Join(result, "\n")
 }
