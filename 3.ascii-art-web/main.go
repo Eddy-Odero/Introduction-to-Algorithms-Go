@@ -26,7 +26,11 @@ func home(w http.ResponseWriter, r *http.Request) {
 		Banner: "standard",
 	}
 
-	tmpl.Execute(w, data)
+	if err := tmpl.Execute(w, data); err != nil {
+	http.Error(w, "Internal Server Error", http.StatusInternalServerError)//500 error
+	return
+}
+
 }
 func asciiHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -43,23 +47,20 @@ func asciiHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if text == "" {
-		data.Error = "Please enter some text"
-		tmpl.Execute(w, data)
-		return
-	}
-
+	http.Error(w, "Bad Request: empty input", http.StatusBadRequest)//400 bad request
+	return
+}
 	if banner != "standard" && banner != "shadow" && banner != "thinkertoy" {
 		data.Error = "Invalid banner selected"
 		tmpl.Execute(w, data)
 		return
 	}
-	
+
 	lines, err := ascii.LoadBanner("banners/" + banner + ".txt")
-	if err != nil {
-		data.Error = "Error loading banner file"
-		tmpl.Execute(w, data)
-		return
-	}
+if err != nil {
+	http.Error(w, "Internal Server Error", http.StatusInternalServerError)// 500 error
+	return
+}
 
 	font := ascii.BuildFont(lines)
 	data.Result = ascii.Generate(text, font)
@@ -67,7 +68,13 @@ func asciiHandler(w http.ResponseWriter, r *http.Request) {
 	tmpl.Execute(w, data)
 }
 func main() {
-	http.HandleFunc("/", home)
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {//404 error
+	if r.URL.Path != "/" {
+		http.NotFound(w, r)
+		return
+	}
+	home(w, r)
+})
 	http.HandleFunc("/ascii-art", asciiHandler)
 
 	http.ListenAndServe(":8080", nil)
