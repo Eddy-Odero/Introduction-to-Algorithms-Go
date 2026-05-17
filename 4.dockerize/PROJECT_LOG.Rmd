@@ -1,0 +1,35 @@
+# Project Log: Dockerize ASCII Art Web
+**Author:** Eddy-Odero  
+**Date:** May 2026
+
+---
+
+## 1. Project Timeline & Phases
+
+
+| Phase | Tasks | Estimated Time | Actual Time | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| **Phase 1: Environment Setup** | Establish Git branching workflow, organize Go project folders | 30 mins | 20 mins | Completed |
+| **Phase 2: Docker Configuration** | Write `.dockerignore` and multi-stage metadata-enriched `Dockerfile` | 45 mins | 30 mins | Completed |
+| **Phase 3: Building & Debugging** | Resolve image base dependency conflicts and directory path errors | 60 mins | 40 mins | Completed |
+| **Phase 4: Verification & Push** | Verify production runtime on browser, submit Pull Request to main | 30 mins | 15 mins | Completed |
+
+---
+
+## 2. Issues Faced & Resolutions (Garbage Collection & Error Log)
+
+### Issue 1: Go Toolchain Version Mismatch
+* **Symptom:** During `docker build`, the compilation crashed at the `RUN go mod download` step.
+* **Error Message:** `go: go.mod requires go >= 1.24.5 (running go 1.23.12)`
+* **Root Cause:** The `go.mod` configuration file required a newer compiler runtime environment than the `golang:1.23-alpine` base image provided.
+* **Resolution:** Upgraded the Dockerfile base builder image tag from `golang:1.23-alpine` to `golang:1.24-alpine`.
+
+### Issue 2: Missing Build Context Artifacts (Directory Naming)
+* **Symptom:** The multi-stage build failed during the Stage 2 runtime image assembly phase.
+* **Error Message:** `COPY --from=builder /app/templates /templates: ... "/app/templates": not found`
+* **Root Cause:** The configuration expected a plural folder name (`templates`), but the underlying application directory structure was named using the singular form (`template`).
+* **Resolution:** Corrected the source path in the Dockerfile `COPY` command to point directly to `/app/template`.
+
+### Issue 3: Optimizing Final Image Size (Garbage Collection Principle)
+* **Symptom:** Initial design choice risks bringing over the entire Go SDK toolchain, resulting in an image size exceeding ~800MB.
+* **Resolution Applied:** Implemented a **Multi-Stage Build**. The source code compilation occurs inside a temporary, disposable container layer (`builder`). Only the pre-compiled statically-linked binary, the `template` layout, and raw `banners` text files are extracted into a minimal `alpine:3.20` base runtime environment. All heavy Go SDK compilers and test files are left behind and garbage collected, successfully optimizing the final image size down to roughly ~20-30MB.
