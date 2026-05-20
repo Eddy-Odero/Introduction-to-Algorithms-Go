@@ -3,29 +3,17 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
+
+	"push-swap/parse"
 )
 
 func main() {
-	args := os.Args[1:]
+	numbers, err := parse.ParseArgs(os.Args[1:])
 
-	var values []int
-
-	for _, arg := range args {
-		fields := strings.Fields(arg)
-
-		for _, field := range fields {
-			n, err := strconv.Atoi(field)
-
-			if err != nil {
-				fmt.Println("Error")
-				return
-			}
-
-			values = append(values, n)
-		}
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error")
+		return
 	}
 
-	fmt.Println(values)
+	fmt.Println(numbers)
 }
