@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"push-swap/parse"
+	"push-swap/stack"
 )
-
 func main() {
 	numbers, err := parse.ParseArgs(os.Args[1:])
 
@@ -15,5 +15,9 @@ func main() {
 		return
 	}
 
-	fmt.Println(numbers)
+	a := stack.Stack{
+		Data: numbers,
+	}
+
+	a.Print("A")
 }
