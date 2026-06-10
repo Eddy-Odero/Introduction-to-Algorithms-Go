@@ -26,10 +26,22 @@ func main() {
 		Data: numbers,
 	}
 
+	b := stack.Stack{}
+
 	var operations []string
 
-	if len(numbers) == 2 {
+	switch len(numbers) {
+	case 2:
 		operations = sort.SortTwo(&a)
+
+	case 3:
+		operations = sort.SortThree(&a)
+
+	case 4:
+		operations = sort.SortFour(&a, &b)
+
+	case 5:
+		operations = sort.SortFive(&a, &b)
 	}
 
 	for _, op := range operations {

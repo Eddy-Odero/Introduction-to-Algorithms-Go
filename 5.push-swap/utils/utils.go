@@ -8,3 +8,24 @@ func IsSorted(nums []int) bool {
 	}
 	return true
 }
+
+func Min(nums []int) int {
+	min := nums[0]
+
+	for _, n := range nums {
+		if n < min {
+			min = n
+		}
+	}
+
+	return min
+}
+
+func IndexOf(nums []int, value int) int {
+	for i, n := range nums {
+		if n == value {
+			return i
+		}
+	}
+	return -1
+}
