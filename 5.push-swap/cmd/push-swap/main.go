@@ -22,8 +22,10 @@ func main() {
 		return
 	}
 
+	normalized := utils.Normalize(numbers)
+
 	a := stack.Stack{
-		Data: numbers,
+		Data: normalized,
 	}
 
 	b := stack.Stack{}
@@ -42,6 +44,9 @@ func main() {
 
 	case 5:
 		operations = sort.SortFive(&a, &b)
+
+	default:
+		operations = sort.RadixSort(&a, &b)
 	}
 
 	for _, op := range operations {
