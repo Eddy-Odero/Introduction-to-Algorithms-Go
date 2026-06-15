@@ -46,7 +46,7 @@ func main() {
 		operations = sort.SortFive(&a, &b)
 
 	default:
-		operations = sort.RadixSort(&a, &b)
+    operations = sort.GreedySort(&a, &b) 
 	}
 
 	for _, op := range operations {
