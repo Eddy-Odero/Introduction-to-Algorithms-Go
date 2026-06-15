@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{.Name}}</title>
+</head>
+<body>
+  <a href="/">← Back</a>
+
+  <h1>{{.Name}}</h1>
+  <p>Founded: {{.CreationDate}}</p>
+  <p>First album: {{.FirstAlbum}}</p>
+
+  <h2>Members</h2>
+  <ul>
+    {{range .Members}}
+      <li>{{.}}</li>
+    {{end}}
+  </ul>
+</body>
+</html>
