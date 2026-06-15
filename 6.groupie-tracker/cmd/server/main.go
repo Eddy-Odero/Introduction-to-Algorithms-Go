@@ -16,16 +16,36 @@ type PageData struct {
 	Relations map[string][]string
 }
 
+type ErrorData struct {
+	Code    int
+	Title   string
+	Message string
+}
+
+func renderError(w http.ResponseWriter, code int, title, message string) {
+	tmpl, err := template.ParseFiles("templates/error.html")
+	if err != nil {
+		http.Error(w, message, code)
+		return
+	}
+	w.WriteHeader(code)
+	tmpl.Execute(w, ErrorData{
+		Code:    code,
+		Title:   title,
+		Message: message,
+	})
+}
+
 func home(w http.ResponseWriter, r *http.Request) {
 	artists, err := api.GetArtists()
 	if err != nil {
-		http.Error(w, "Failed to load artists", http.StatusInternalServerError)
+		renderError(w, 500, "Something went wrong", "We couldn't load the artists. Please try again.")
 		return
 	}
 
 	tmpl, err := template.ParseFiles("templates/index.html")
 	if err != nil {
-		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		renderError(w, 500, "Something went wrong", "Failed to load the page template.")
 		return
 	}
 
@@ -36,13 +56,13 @@ func artistPage(w http.ResponseWriter, r *http.Request) {
 	idStr := strings.TrimPrefix(r.URL.Path, "/artist/")
 	id, err := strconv.Atoi(idStr)
 	if err != nil || id < 1 {
-		http.Error(w, "Artist not found", http.StatusNotFound)
+		renderError(w, 404, "Artist not found", "The artist you're looking for doesn't exist.")
 		return
 	}
 
 	artists, err := api.GetArtists()
 	if err != nil {
-		http.Error(w, "Failed to load artists", http.StatusInternalServerError)
+		renderError(w, 500, "Something went wrong", "We couldn't load the artists. Please try again.")
 		return
 	}
 
@@ -55,19 +75,19 @@ func artistPage(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if found == nil {
-		http.Error(w, "Artist not found", http.StatusNotFound)
+		renderError(w, 404, "Artist not found", "No artist with that ID exists.")
 		return
 	}
 
 	relations, err := api.GetRelations()
 	if err != nil {
-		http.Error(w, "Failed to load relations", http.StatusInternalServerError)
+		renderError(w, 500, "Something went wrong", "We couldn't load the tour dates.")
 		return
 	}
 
 	tmpl, err := template.ParseFiles("templates/artist.html")
 	if err != nil {
-		http.Error(w, "Failed to load template", http.StatusInternalServerError)
+		renderError(w, 500, "Something went wrong", "Failed to load the page template.")
 		return
 	}
 
@@ -92,11 +112,29 @@ func searchAPI(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(results)
 }
 
+func filterAPI(w http.ResponseWriter, r *http.Request) {
+	minYear, _ := strconv.Atoi(r.URL.Query().Get("minYear"))
+	maxYear, _ := strconv.Atoi(r.URL.Query().Get("maxYear"))
+	members, _ := strconv.Atoi(r.URL.Query().Get("members"))
+
+	artists, err := api.GetArtists()
+	if err != nil {
+		http.Error(w, "Failed to load artists", http.StatusInternalServerError)
+		return
+	}
+
+	results := api.FilterArtists(artists, minYear, maxYear, members)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(results)
+}
+
 func main() {
 	fs := http.FileServer(http.Dir("static"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
 	http.HandleFunc("/api/search", searchAPI)
+	http.HandleFunc("/api/filter", filterAPI)
 	http.HandleFunc("/artist/", artistPage)
 	http.HandleFunc("/", home)
 

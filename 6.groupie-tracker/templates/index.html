@@ -29,14 +29,42 @@
       <a href="#artists" class="hero-btn">Explore Artists</a>
     </div>
   </section>
-
+<!-- Filter Bar -->
+<section class="filter-section">
+  <div class="filter-inner">
+    <div class="filter-group">
+      <label>Founded Between</label>
+      <div class="filter-row">
+        <input type="number" id="minYear" placeholder="e.g. 1960" min="1900" max="2024">
+        <span>—</span>
+        <input type="number" id="maxYear" placeholder="e.g. 2000" min="1900" max="2024">
+      </div>
+    </div>
+    <div class="filter-group">
+      <label>Number of Members</label>
+      <div class="filter-row">
+        <select id="members">
+          <option value="">Any</option>
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5">5</option>
+          <option value="6">6+</option>
+        </select>
+      </div>
+    </div>
+    <button id="filterBtn" class="filter-btn">Filter</button>
+    <button id="resetBtn" class="reset-btn">Reset</button>
+  </div>
+</section>
   <!-- Artists Grid -->
   <section class="artists-section" id="artists">
     <div class="section-header">
       <h2 class="section-title">Artists</h2>
       <span class="section-count">{{len .}} acts</span>
     </div>
-    <div class="artist-grid">
+   <div class="artist-grid" id="artistGrid">
       {{range .}}
       <a href="/artist/{{.ID}}" class="artist-card">
         <img src="{{.Image}}" alt="{{.Name}}">
@@ -53,34 +81,8 @@
     <p>Groupie Tracker &mdash; concert data explorer</p>
   </footer>
 
-  <script>
-    const input = document.getElementById("search")
-    const list = document.getElementById("suggestions")
-
-    input.addEventListener("input", function () {
-      const query = input.value.trim()
-
-      if (query === "") {
-        list.innerHTML = ""
-        return
-      }
-
-      fetch("/api/search?q=" + encodeURIComponent(query))
-        .then(function (res) { return res.json() })
-        .then(function (artists) {
-          list.innerHTML = ""
-          if (!artists || artists.length === 0) return
-
-          artists.forEach(function (a) {
-            const li = document.createElement("li")
-            const link = document.createElement("a")
-            link.href = "/artist/" + a.id
-            link.textContent = a.name
-            li.appendChild(link)
-            list.appendChild(li)
-          })
-        })
-    })
+  <script src="../static/js/search.js">
+  
   </script>
 
 </body>

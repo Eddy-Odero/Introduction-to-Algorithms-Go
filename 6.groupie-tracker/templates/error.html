@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Code}} — Groupie Tracker</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">
+      <div class="logo-icon">🎵</div>
+      <div class="logo-text">Groupie<span>Tracker</span></div>
+    </a>
+    <a href="/" class="nav-back">← Back to Artists</a>
+  </nav>
+
+  <section class="error-page">
+    <div class="error-inner">
+      <div class="error-code">{{.Code}}</div>
+      <h1 class="error-title">{{.Title}}</h1>
+      <p class="error-message">{{.Message}}</p>
+      <a href="/" class="hero-btn">Go back home</a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Groupie Tracker &mdash; concert data explorer</p>
+  </footer>
+
+</body>
+</html>

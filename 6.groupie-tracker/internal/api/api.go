@@ -85,3 +85,23 @@ func GetRelations() (map[int]Relations, error) {
 
     return relMap, nil
 }
+func FilterArtists(artists []Artist, minYear, maxYear, members int) []Artist {
+	var results []Artist
+
+	for _, a := range artists {
+		// check year range
+		if minYear > 0 && a.CreationDate < minYear {
+			continue
+		}
+		if maxYear > 0 && a.CreationDate > maxYear {
+			continue
+		}
+		// check members count
+		if members > 0 && len(a.Members) != members {
+			continue
+		}
+		results = append(results, a)
+	}
+
+	return results
+}

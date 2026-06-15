@@ -461,3 +461,132 @@ body {
   color: rgba(255,255,255,0.35);
   font-size: 0.9rem;
 }
+/* ── Filter ── */
+.filter-section {
+  background: #111;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  padding: 1.5rem 2rem;
+}
+
+.filter-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.filter-group label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.4);
+}
+
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.filter-row span {
+  color: rgba(255,255,255,0.3);
+}
+
+.filter-section input[type="number"],
+.filter-section select {
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.85rem;
+  padding: 0.45rem 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+  width: 120px;
+}
+
+.filter-section select {
+  width: 140px;
+  cursor: pointer;
+}
+
+.filter-section input:focus,
+.filter-section select:focus {
+  border-color: #e63946;
+}
+
+.filter-btn {
+  background: #e63946;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.filter-btn:hover {
+  background: #c1121f;
+}
+
+.reset-btn {
+  background: transparent;
+  color: rgba(255,255,255,0.4);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 6px;
+  font-size: 0.85rem;
+  padding: 0.5rem 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.reset-btn:hover {
+  color: #fff;
+  border-color: rgba(255,255,255,0.3);
+}
+/* ── Error page ── */
+.error-page {
+  min-height: calc(100vh - 64px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem;
+  margin-top: 64px;
+}
+
+.error-inner {
+  max-width: 480px;
+}
+
+.error-code {
+  font-size: 8rem;
+  font-weight: 800;
+  line-height: 1;
+  color: #e63946;
+  opacity: 0.15;
+  margin-bottom: -1rem;
+}
+
+.error-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.error-message {
+  color: rgba(255,255,255,0.5);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
