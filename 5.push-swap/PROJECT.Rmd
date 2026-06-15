@@ -1,0 +1,98 @@
+# Push-Swap (Go Implementation)
+
+## Overview
+Push-Swap is a sorting algorithm project using two stacks (A and B) and a limited set of instructions.  
+The goal is to sort stack A with the minimum number of operations.
+
+This implementation is written in Go using only standard packages.
+
+---
+
+## Features
+
+- Argument parsing with validation
+- Duplicate detection
+- Stack operations implementation:
+  - sa, sb, ss
+  - pa, pb
+  - ra, rb, rr
+  - rra, rrb, rrr
+- Checker program to validate instructions
+- Sorting for:
+  - 2–5 numbers (optimized cases)
+  - 6+ numbers (greedy algorithm)
+
+---
+
+## Sorting Strategy
+
+### Small input (2–5 numbers)
+Uses hardcoded optimal sorting functions:
+- SortTwo
+- SortThree
+- SortFour
+- SortFive
+
+---
+
+### Large input (6+ numbers)
+Uses a **Greedy Chunk-Based Algorithm**
+
+Instead of radix sort, numbers are:
+- Indexed (normalized from 0 → n-1)
+- Pushed to stack B in chunks
+- Reinserted into stack A in optimal order
+
+---
+
+## Greedy Algorithm (Core Idea)
+
+### Step 1: Normalize input
+Convert values into ranks:
+
+---
+
+### Step 2: Divide into chunks
+
+Example for 100 numbers:
+- 5 chunks of 20
+or
+- dynamic chunk size (sqrt(n))
+
+---
+
+### Step 3: Push to stack B
+
+For each chunk:
+- Find closest value in chunk
+- Push it to B using minimal rotations:
+  - ra (rotate up)
+  - rra (rotate down)
+
+---
+
+### Step 4: Rebuild stack A
+
+While B is not empty:
+- Find max value in B
+- Bring it to top using minimal moves
+- Push back to A (pa)
+
+---
+
+## Why Greedy Works Better Than Radix
+
+| Method | Performance | Stability |
+|--------|------------|----------|
+| Radix  | Medium (~1080 ops in naive version) | stable |
+| Greedy | Better (~450–700 ops) | adaptive |
+
+Greedy reduces unnecessary rotations.
+
+---
+
+## How to Run
+
+### Build push-swap
+```bash
+go run ./cmd/push-swap "3 2 1 6 5 8"
