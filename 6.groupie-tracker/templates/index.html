@@ -2,16 +2,86 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Groupie Tracker</title>
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-  <h1>Artists</h1>
-<ul>
-  {{range .}}
-    <li>
-      <a href="/artist/{{.ID}}">{{.Name}}</a> — founded {{.CreationDate}}
-    </li>
-  {{end}}
-</ul>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">
+      <div class="logo-icon">🎵</div>
+      <div class="logo-text">Groupie<span>Tracker</span></div>
+    </a>
+    <div class="navbar-search">
+      <input type="text" id="search" placeholder="Search artists or members…" autocomplete="off">
+      <ul id="suggestions"></ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">🎤 Live Concert Tracker</div>
+      <h1>Find Your <span>Favourite</span> Artist</h1>
+      <p>Discover bands, explore tour dates, and follow the artists you love — all in one place.</p>
+      <a href="#artists" class="hero-btn">Explore Artists</a>
+    </div>
+  </section>
+
+  <!-- Artists Grid -->
+  <section class="artists-section" id="artists">
+    <div class="section-header">
+      <h2 class="section-title">Artists</h2>
+      <span class="section-count">{{len .}} acts</span>
+    </div>
+    <div class="artist-grid">
+      {{range .}}
+      <a href="/artist/{{.ID}}" class="artist-card">
+        <img src="{{.Image}}" alt="{{.Name}}">
+        <div class="card-body">
+          <div class="card-name">{{.Name}}</div>
+          <div class="card-meta">Est. {{.CreationDate}} &middot; {{len .Members}} members</div>
+        </div>
+      </a>
+      {{end}}
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Groupie Tracker &mdash; concert data explorer</p>
+  </footer>
+
+  <script>
+    const input = document.getElementById("search")
+    const list = document.getElementById("suggestions")
+
+    input.addEventListener("input", function () {
+      const query = input.value.trim()
+
+      if (query === "") {
+        list.innerHTML = ""
+        return
+      }
+
+      fetch("/api/search?q=" + encodeURIComponent(query))
+        .then(function (res) { return res.json() })
+        .then(function (artists) {
+          list.innerHTML = ""
+          if (!artists || artists.length === 0) return
+
+          artists.forEach(function (a) {
+            const li = document.createElement("li")
+            const link = document.createElement("a")
+            link.href = "/artist/" + a.id
+            link.textContent = a.name
+            li.appendChild(link)
+            list.appendChild(li)
+          })
+        })
+    })
+  </script>
+
 </body>
 </html>

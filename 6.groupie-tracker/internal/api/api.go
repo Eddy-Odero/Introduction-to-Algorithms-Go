@@ -4,6 +4,7 @@ import (
     "encoding/json"
     "fmt"
     "net/http"
+	"strings"
 )
 
 // Artist matches the shape of one object in the API response
@@ -29,4 +30,28 @@ func GetArtists() ([]Artist, error) {
     }
 
     return artists, nil
+}
+
+func SearchArtists(query string, artists []Artist) []Artist {
+    if query == "" {
+        return nil
+    }
+
+    query = strings.ToLower(query)
+    var results []Artist
+
+    for _, a := range artists {
+        if strings.Contains(strings.ToLower(a.Name), query) {
+            results = append(results, a)
+            continue
+        }
+        for _, m := range a.Members {
+            if strings.Contains(strings.ToLower(m), query) {
+                results = append(results, a)
+                break
+            }
+        }
+    }
+
+    return results
 }

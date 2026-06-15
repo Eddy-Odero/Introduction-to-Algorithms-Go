@@ -2,20 +2,65 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>{{.Name}}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{.Name}} — Groupie Tracker</title>
+  <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-  <a href="/">← Back</a>
 
-  <h1>{{.Name}}</h1>
-  <p>Founded: {{.CreationDate}}</p>
-  <p>First album: {{.FirstAlbum}}</p>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">
+      <div class="logo-icon">🎵</div>
+      <div class="logo-text">Groupie<span>Tracker</span></div>
+    </a>
+    <a href="/" class="nav-back">← Back to Artists</a>
+  </nav>
 
-  <h2>Members</h2>
-  <ul>
-    {{range .Members}}
-      <li>{{.}}</li>
-    {{end}}
-  </ul>
+  <!-- Artist Hero -->
+  <section class="artist-hero">
+    <div class="artist-hero-image-wrap">
+      <img src="{{.Image}}" alt="{{.Name}}" class="artist-hero-image">
+      <div class="artist-hero-overlay"></div>
+    </div>
+    <div class="artist-hero-content">
+      <span class="hero-badge">🎤 Artist Profile</span>
+      <h1 class="artist-hero-name">{{.Name}}</h1>
+      <div class="artist-stats">
+        <div class="stat">
+          <span class="stat-value">{{.CreationDate}}</span>
+          <span class="stat-label">Founded</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{.FirstAlbum}}</span>
+          <span class="stat-label">First Album</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">{{len .Members}}</span>
+          <span class="stat-label">Members</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Members -->
+  <section class="artist-section">
+    <div class="artist-section-inner">
+      <h2 class="artist-section-title">Members</h2>
+      <div class="members-grid">
+        {{range .Members}}
+        <div class="member-card">
+          <span class="member-icon">🎸</span>
+          <span class="member-name">{{.}}</span>
+        </div>
+        {{end}}
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p>Groupie Tracker &mdash; concert data explorer</p>
+  </footer>
+
 </body>
 </html>
