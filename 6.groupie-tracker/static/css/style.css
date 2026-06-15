@@ -411,3 +411,53 @@ body {
   color: rgba(255,255,255,0.85);
   font-weight: 500;
 }
+/* ── Tour grid ── */
+.tour-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+}
+
+.tour-card {
+  background: #1a1a1a;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  padding: 1.1rem 1.25rem;
+  transition: border-color 0.2s;
+}
+
+.tour-card:hover {
+  border-color: #e63946;
+}
+
+.tour-location {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  text-transform: capitalize;
+}
+
+.tour-pin {
+  font-size: 0.85rem;
+}
+
+.tour-dates {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.tour-dates li {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.45);
+  padding-left: 1.2rem;
+}
+
+.empty-state {
+  color: rgba(255,255,255,0.35);
+  font-size: 0.9rem;
+}

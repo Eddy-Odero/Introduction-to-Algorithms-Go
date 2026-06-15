@@ -55,3 +55,33 @@ func SearchArtists(query string, artists []Artist) []Artist {
 
     return results
 }
+
+type Relations struct {
+    ID             int                 `json:"id"`
+    DatesLocations map[string][]string `json:"datesLocations"`
+}
+
+type RelationsResponse struct {
+    Index []Relations `json:"index"`
+}
+
+func GetRelations() (map[int]Relations, error) {
+    resp, err := http.Get("https://groupietrackers.herokuapp.com/api/relation")
+    if err != nil {
+        return nil, fmt.Errorf("fetch failed: %w", err)
+    }
+    defer resp.Body.Close()
+
+    var result RelationsResponse
+    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+        return nil, fmt.Errorf("decode failed: %w", err)
+    }
+
+    // turn the slice into a map keyed by artist ID for easy lookup
+    relMap := make(map[int]Relations)
+    for _, r := range result.Index {
+        relMap[r.ID] = r
+    }
+
+    return relMap, nil
+}

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{.Name}} — Groupie Tracker</title>
+  <title>{{.Artist.Name}} — Groupie Tracker</title>
   <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
@@ -20,23 +20,23 @@
   <!-- Artist Hero -->
   <section class="artist-hero">
     <div class="artist-hero-image-wrap">
-      <img src="{{.Image}}" alt="{{.Name}}" class="artist-hero-image">
+      <img src="{{.Artist.Image}}" alt="{{.Artist.Name}}" class="artist-hero-image">
       <div class="artist-hero-overlay"></div>
     </div>
     <div class="artist-hero-content">
       <span class="hero-badge">🎤 Artist Profile</span>
-      <h1 class="artist-hero-name">{{.Name}}</h1>
+      <h1 class="artist-hero-name">{{.Artist.Name}}</h1>
       <div class="artist-stats">
         <div class="stat">
-          <span class="stat-value">{{.CreationDate}}</span>
+          <span class="stat-value">{{.Artist.CreationDate}}</span>
           <span class="stat-label">Founded</span>
         </div>
         <div class="stat">
-          <span class="stat-value">{{.FirstAlbum}}</span>
+          <span class="stat-value">{{.Artist.FirstAlbum}}</span>
           <span class="stat-label">First Album</span>
         </div>
         <div class="stat">
-          <span class="stat-value">{{len .Members}}</span>
+          <span class="stat-value">{{len .Artist.Members}}</span>
           <span class="stat-label">Members</span>
         </div>
       </div>
@@ -48,13 +48,39 @@
     <div class="artist-section-inner">
       <h2 class="artist-section-title">Members</h2>
       <div class="members-grid">
-        {{range .Members}}
+        {{range .Artist.Members}}
         <div class="member-card">
           <span class="member-icon">🎸</span>
           <span class="member-name">{{.}}</span>
         </div>
         {{end}}
       </div>
+    </div>
+  </section>
+
+  <!-- Tour Dates & Locations -->
+  <section class="artist-section">
+    <div class="artist-section-inner">
+      <h2 class="artist-section-title">Tour Dates &amp; Locations</h2>
+      {{if .Relations}}
+      <div class="tour-grid">
+        {{range $location, $dates := .Relations}}
+        <div class="tour-card">
+          <div class="tour-location">
+            <span class="tour-pin">📍</span>
+            {{$location}}
+          </div>
+          <ul class="tour-dates">
+            {{range $dates}}
+            <li>{{.}}</li>
+            {{end}}
+          </ul>
+        </div>
+        {{end}}
+      </div>
+      {{else}}
+      <p class="empty-state">No tour dates found.</p>
+      {{end}}
     </div>
   </section>
 
