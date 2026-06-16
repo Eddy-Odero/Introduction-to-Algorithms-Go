@@ -72,3 +72,24 @@ resetBtn.addEventListener("click", function () {
           })
         })
     })
+
+    input.addEventListener("keydown", function (e) {
+  if (e.key !== "Enter") return
+
+  const query = input.value.trim()
+  if (query === "") return
+
+  // if suggestions are showing, let the user pick one
+  // if nothing matched, go to not found page
+  fetch("/api/search?q=" + encodeURIComponent(query))
+    .then(function (res) { return res.json() })
+    .then(function (artists) {
+      if (!artists || artists.length === 0) {
+        window.location.href = "/notfound?q=" + encodeURIComponent(query)
+      } else if (artists.length === 1) {
+        // only one match — go straight to their page
+        window.location.href = "/artist/" + artists[0].id
+      }
+      // multiple matches — let the user pick from suggestions
+    })
+})
