@@ -58,9 +58,9 @@ The project implements two client-server events where the browser sends a reques
 
 **Run the server**
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/Eddy-Odero/Introduction-to-Algorithms-Go.git
 cd groupie-tracker
-go run main.go
+go run ./cmd/server/
 ```
 
 Then open your browser at:
