@@ -5,6 +5,8 @@ import (
 	"groupie-tracker/internal/api"
 	"html/template"
 	"net/http"
+	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 )
@@ -20,8 +22,13 @@ type ErrorData struct {
 	Message string
 }
 
+func projectRoot() string {
+	_, filename, _, _ := runtime.Caller(0)
+	return filepath.Join(filepath.Dir(filename), "..", "..")
+}
+
 func RenderError(w http.ResponseWriter, code int, title, message string) {
-	tmpl, err := template.ParseFiles("templates/error.html")
+	tmpl, err := template.ParseFiles(filepath.Join(projectRoot(), "templates", "error.html"))
 	if err != nil {
 		http.Error(w, message, code)
 		return
@@ -41,7 +48,7 @@ func Home(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/index.html")
+	tmpl, err := template.ParseFiles(filepath.Join(projectRoot(), "templates", "index.html"))
 	if err != nil {
 		RenderError(w, 500, "Something went wrong", "Failed to load the page template.")
 		return
@@ -83,7 +90,7 @@ func ArtistPage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	tmpl, err := template.ParseFiles("templates/artist.html")
+	tmpl, err := template.ParseFiles(filepath.Join(projectRoot(), "templates", "artist.html"))
 	if err != nil {
 		RenderError(w, 500, "Something went wrong", "Failed to load the page template.")
 		return
