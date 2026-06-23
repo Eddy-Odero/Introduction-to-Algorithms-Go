@@ -25,7 +25,7 @@ type RelationsResponse struct {
 	Index []Relations `json:"index"`
 }
 
-// Client is the API client — all methods are attached to this struct
+
 type Client struct{}
 
 func (c *Client) GetArtists() ([]Artist, error) {
