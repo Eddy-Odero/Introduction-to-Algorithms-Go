@@ -1,16 +1,17 @@
 package main
 
-import (
-	"fmt"
-	"os"
+import ("fmt"
+"os"
 )
 
-func main() {
-	data, err := os.ReadFile("testdata/sample.txt")
-	if err != nil {
-		fmt.Println("error reading file", err)
-		return
+func main(){
+	if len(os.Args) != 2{
+		 fmt.Println("Error provide file path")
 	}
-
-	fmt.Println(string(data))
+	file := os.Args[1]
+data, err := os.ReadFile(file)
+if err != nil{
+	fmt.Println("error reading file", err)
+}
+fmt.Println(string(data))
 }
