@@ -2,7 +2,6 @@ package parser
 
 import (
 	"strings"
-	"fmt"
 )
 
 type Tetromino struct {
@@ -17,17 +16,24 @@ func Parse(content string) ([]Tetromino, error) {
 		"\n\n",
 	)
 
-	fmt.Println("Blocks:", len(blocks))
+	
 
 	var pieces []Tetromino
 
 	for _, block := range blocks {
-		rows := strings.Split(block, "\n")
 
-		pieces = append(pieces, Tetromino{
-			Raw: rows,
-		})
+	rows := strings.Split(block, "\n")
+
+	t := Tetromino{
+		Raw: rows,
 	}
+
+	if err := Validate(t); err != nil {
+		return nil, err
+	}
+
+	pieces = append(pieces, t)
+}
 
 	return pieces, nil
 }
