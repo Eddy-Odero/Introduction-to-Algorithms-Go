@@ -1,0 +1,172 @@
+# Fillit/Tetromino Solver Roadmap
+
+## Goal
+
+Read tetrominoes from a file and arrange them into the smallest square possible.
+
+---
+
+## Skills Learned
+
+### Go Fundamentals
+- Packages
+- Structs
+- Methods
+- Slices
+- Error handling
+- File I/O
+
+### Data Structures
+- 2D grids
+- Coordinate systems
+
+### Algorithms
+- DFS/BFS validation
+- Backtracking
+- Constraint solving
+
+### Software Engineering
+- Project structure
+- Unit testing
+- Separation of concerns
+
+---
+
+## Project Phases
+
+### Phase 0
+Environment Setup
+
+Learn:
+- go mod init
+- package structure
+- running tests
+
+Deliverable:
+- Project compiles
+
+---
+
+### Phase 1
+File Reading
+
+Learn:
+- os.ReadFile
+- command line arguments
+
+Deliverable:
+- Print file contents
+
+---
+
+### Phase 2
+Parser
+
+Learn:
+- strings.Split
+- validation basics
+
+Deliverable:
+- Parse tetromino blocks
+
+---
+
+### Phase 3
+Tetromino Validation
+
+Learn:
+- coordinate extraction
+- graph connectivity
+
+Deliverable:
+- Reject invalid pieces
+
+---
+
+### Phase 4
+Normalization
+
+Learn:
+- coordinate transformations
+
+Deliverable:
+- Convert tetrominoes to normalized coordinates
+
+---
+
+### Phase 5
+Board
+
+Learn:
+- 2D slices
+- helper methods
+
+Deliverable:
+- Create and print boards
+
+---
+
+### Phase 6
+Placement
+
+Learn:
+- collision detection
+
+Deliverable:
+- Place and remove tetrominoes
+
+---
+
+### Phase 7
+Backtracking Solver
+
+Learn:
+- recursion
+- search trees
+
+Deliverable:
+- Solve simple cases
+
+---
+
+### Phase 8
+Smallest Square Search
+
+Learn:
+- optimization
+
+Deliverable:
+- Full project works
+
+---
+
+### Phase 9
+Testing
+
+Learn:
+- table driven tests
+
+Deliverable:
+- Reliable solution
+tetromino-solver/
+│
+├── cmd/
+│   └── main.go
+│
+├── internal/
+│   ├── parser/
+│   │   └── parser.go
+│   │
+│   ├── board/
+│   │   └── board.go
+│   │
+│   └── solver/
+│       └── solver.go
+│
+├── tests/
+│
+├── sample.txt
+│
+├── go.mod
+│
+└── ROADMAP.md
