@@ -7,6 +7,7 @@ import (
 
 	"lem-in/internal/graph"
 	"lem-in/internal/parser"
+	"lem-in/internal/solver"
 )
 
 func main() {
@@ -64,5 +65,11 @@ func main() {
 			fmt.Print(r.Name, " ")
 		}
 		fmt.Println()
+	}
+
+	// Temporary: Phase 7 sanity check
+	assignments := solver.AssignAnts(colony.NumAnts, allPaths)
+	for i, a := range assignments {
+		fmt.Printf("Path %d (%d edges): ants %v\n", i, len(a.Path)-1, a.AntIDs)
 	}
 }
