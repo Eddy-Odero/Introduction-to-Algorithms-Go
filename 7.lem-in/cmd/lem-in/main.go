@@ -7,6 +7,7 @@ import (
 
 	"lem-in/internal/graph"
 	"lem-in/internal/parser"
+	"lem-in/internal/simulator"
 	"lem-in/internal/solver"
 )
 
@@ -30,46 +31,24 @@ func main() {
 		return
 	}
 
-	// Temporary debug view for Phase 3/4 — will be replaced by the real
-	// required output once Phases 5-8 are done.
-	fmt.Println("Ants:", colony.NumAnts)
-	fmt.Println("Start:", colony.Start.Name, colony.Start.X, colony.Start.Y)
-	fmt.Println("End:", colony.End.Name, colony.End.X, colony.End.Y)
-	fmt.Println("Total rooms:", len(colony.Rooms))
-	for name, room := range colony.Rooms {
-		linkNames := []string{}
-		for _, l := range room.Links {
-			linkNames = append(linkNames, l.Name)
-		}
-		fmt.Printf("  %s -> %v\n", name, linkNames)
-	}
-
-	// Temporary: Phase 5 sanity check
-	path := graph.FindShortestPath(colony)
-	if path == nil {
-		fmt.Println("No path found")
-	} else {
-		fmt.Print("Shortest path: ")
-		for _, r := range path {
-			fmt.Print(r.Name, " ")
-		}
-		fmt.Println()
-	}
-
-	// Temporary: Phase 6 sanity check
 	allPaths := graph.FindAllPaths(colony)
-	fmt.Println("Found", len(allPaths), "disjoint paths:")
-	for _, p := range allPaths {
-		fmt.Print("  ")
-		for _, r := range p {
-			fmt.Print(r.Name, " ")
-		}
-		fmt.Println()
+	if len(allPaths) == 0 {
+		fmt.Println("ERROR: invalid data format, no path found")
+		return
 	}
 
-	// Temporary: Phase 7 sanity check
+	displayLines := colony.RawLines
+	if len(displayLines) > 0 && displayLines[len(displayLines)-1] == "" {
+		displayLines = displayLines[:len(displayLines)-1]
+	}
+	fmt.Println(strings.Join(displayLines, "\n"))
+	fmt.Println()
+
 	assignments := solver.AssignAnts(colony.NumAnts, allPaths)
-	for i, a := range assignments {
-		fmt.Printf("Path %d (%d edges): ants %v\n", i, len(a.Path)-1, a.AntIDs)
+
+	// 3. Simulate turn-by-turn movement and print each turn.
+	turns := simulator.Simulate(assignments)
+	for _, t := range turns {
+		fmt.Println(t)
 	}
 }

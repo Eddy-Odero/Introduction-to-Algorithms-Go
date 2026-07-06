@@ -2,23 +2,11 @@ package solver
 
 import "lem-in/internal/graph"
 
-// PathAssignment holds one discovered path plus the specific ant numbers
-// (1-indexed, matching the output spec) that will travel on it, in the
-// order they enter Start.
 type PathAssignment struct {
 	Path   []*graph.Room
 	AntIDs []int
 }
 
-// AssignAnts distributes numAnts across the given disjoint paths to
-// minimize the total number of turns needed for every ant to reach End.
-//
-// Turns for a path carrying k ants = (edges in path) + k - 1.
-// Since every ant is "equal work", the optimal distribution is greedy:
-// send each next ant down whichever path currently has the lowest
-// projected finish time. This is a straightforward exchange-argument
-// optimum for identical-size jobs across parallel "machines" with
-// different fixed head-starts (the path lengths).
 func AssignAnts(numAnts int, paths [][]*graph.Room) []*PathAssignment {
 	assignments := make([]*PathAssignment, len(paths))
 	load := make([]int, len(paths)) // projected finish turn if we add one more ant
