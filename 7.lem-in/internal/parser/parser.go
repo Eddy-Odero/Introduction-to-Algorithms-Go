@@ -8,13 +8,10 @@ import (
 	"lem-in/internal/graph"
 )
 
-// Parse turns raw file lines into a validated Colony, or returns an error
-// matching the spec's required "ERROR: invalid data format" wording.
 func Parse(lines []string) (*graph.Colony, error) {
 	colony := graph.NewColony()
-	colony.RawLines = lines // keep original content for later display
+	colony.RawLines = lines 
 
-	// --- Step 1: find the ant count (first non-empty, non-comment line) ---
 	idx := 0
 	for idx < len(lines) && (strings.TrimSpace(lines[idx]) == "" || strings.HasPrefix(lines[idx], "#")) {
 		idx++
@@ -29,12 +26,9 @@ func Parse(lines []string) (*graph.Colony, error) {
 	colony.NumAnts = numAnts
 	idx++
 
-	// --- Step 2: walk the rest of the lines, classifying each ---
 	nextIsStart := false
 	nextIsEnd := false
-	// links can reference rooms defined anywhere, but every real-world lem-in
-	// file lists rooms before links, so we defer link creation to a second
-	// pass to avoid "unknown room" false positives caused purely by ordering.
+
 	type pendingLink struct{ a, b string }
 	var pendingLinks []pendingLink
 
@@ -58,7 +52,7 @@ func Parse(lines []string) (*graph.Colony, error) {
 			nextIsEnd = true
 			continue
 		case strings.HasPrefix(line, "#"):
-			continue // ordinary comment, ignore
+			continue 
 
 		case isLinkLine(line):
 			parts := strings.Split(line, "-")
@@ -90,7 +84,6 @@ func Parse(lines []string) (*graph.Colony, error) {
 		}
 	}
 
-	// --- Step 3: validate start/end exist ---
 	if colony.Start == nil {
 		return nil, errors.New("ERROR: invalid data format, no start room found")
 	}
@@ -98,7 +91,6 @@ func Parse(lines []string) (*graph.Colony, error) {
 		return nil, errors.New("ERROR: invalid data format, no end room found")
 	}
 
-	// --- Step 4: now wire up links, since all rooms are known ---
 	for _, pl := range pendingLinks {
 		if !colony.AddLink(pl.a, pl.b) {
 			return nil, errors.New("ERROR: invalid data format, link to unknown room")
@@ -108,8 +100,6 @@ func Parse(lines []string) (*graph.Colony, error) {
 	return colony, nil
 }
 
-// isLinkLine reports whether a line looks like "name1-name2" rather than a
-// room definition. A link line has exactly one '-' and no whitespace.
 func isLinkLine(line string) bool {
 	if strings.ContainsAny(line, " \t") {
 		return false

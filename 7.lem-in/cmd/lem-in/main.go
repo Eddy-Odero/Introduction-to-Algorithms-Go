@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"lem-in/internal/graph"
 	"lem-in/internal/parser"
 )
 
@@ -28,8 +29,6 @@ func main() {
 		return
 	}
 
-	// Temporary debug view for Phase 3/4 — will be replaced by the real
-	// required output once Phases 5-8 are done.
 	fmt.Println("Ants:", colony.NumAnts)
 	fmt.Println("Start:", colony.Start.Name, colony.Start.X, colony.Start.Y)
 	fmt.Println("End:", colony.End.Name, colony.End.X, colony.End.Y)
@@ -40,5 +39,16 @@ func main() {
 			linkNames = append(linkNames, l.Name)
 		}
 		fmt.Printf("  %s -> %v\n", name, linkNames)
+	}
+
+	path := graph.FindShortestPath(colony)
+	if path == nil {
+		fmt.Println("No path found")
+	} else {
+		fmt.Print("Shortest path: ")
+		for _, r := range path {
+			fmt.Print(r.Name, " ")
+		}
+		fmt.Println()
 	}
 }
