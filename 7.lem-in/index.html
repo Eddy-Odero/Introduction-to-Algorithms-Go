@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>lem-in — colony visualizer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+  :root {
+    --bg: #1a1611; --bg-soft: #241f18; --ember: #e8a33d; --ember-dim: #8a6528;
+    --ink: #e9e2d3; --ink-dim: #a89c85; --line: #3a3226; --bad: #d9705a;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); font-family: -apple-system, sans-serif; color: var(--ink); overflow: hidden; }
+
+  #inputScreen {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    z-index: 30; background: var(--bg); flex-direction: column; gap: 16px; padding: 24px;
+  }
+  #inputScreen.hidden { display: none; }
+  #inputBox { width: min(720px, 90vw); }
+  #inputBox h1 { font-size: 18px; letter-spacing: 0.04em; margin: 0 0 4px; }
+  #inputBox h1 span { color: var(--ember); }
+  #inputBox p { color: var(--ink-dim); font-size: 13px; line-height: 1.6; margin: 0 0 16px; }
+  #pasteArea {
+    width: 100%; height: 260px; background: var(--bg-soft); border: 1px solid var(--line);
+    color: var(--ink); font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 14px;
+    border-radius: 4px; resize: vertical; line-height: 1.5;
+  }
+  #pasteArea:focus { outline: none; border-color: var(--ember-dim); }
+  #inputActions { display: flex; gap: 10px; margin-top: 14px; }
+  #parseError { color: var(--bad); font-size: 12px; margin-top: 10px; font-family: 'IBM Plex Mono', monospace; min-height: 16px; }
+
+  .textbtn {
+    background: var(--bg-soft); border: 1px solid var(--line); color: var(--ink);
+    padding: 9px 16px; border-radius: 4px; cursor: pointer; font-size: 12.5px;
+    font-family: -apple-system, sans-serif; transition: border-color .15s, color .15s;
+  }
+  .textbtn:hover { border-color: var(--ember-dim); color: var(--ember); }
+  .textbtn.primary { background: var(--ember); color: #1a1611; border-color: var(--ember); font-weight: 600; }
+  .textbtn.primary:hover { opacity: 0.9; color: #1a1611; }
+
+  #scene { position: absolute; inset: 0; cursor: grab; }
+  #scene:active { cursor: grabbing; }
+  .panel { position: absolute; z-index: 10; background: rgba(26,22,17,.88); border: 1px solid var(--line); backdrop-filter: blur(6px); }
+
+  #header { top:0; left:0; right:0; padding:16px 24px; display:flex; align-items:baseline; justify-content:space-between; border:none; border-bottom:1px solid var(--line); background: linear-gradient(180deg, rgba(26,22,17,.95), rgba(26,22,17,.6)); }
+  #header h1 { margin:0; font-size:14px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; }
+  #header h1 span { color: var(--ember); }
+  #header .meta { font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-dim); }
+  #newInputBtn { font-size: 11px; padding: 6px 12px; }
+
+  #legend { top:64px; left:24px; padding:10px 14px; border-radius:3px; font-family:'IBM Plex Mono', monospace; font-size:11px; line-height:1.9; max-width: 260px; }
+  .legend-row { display:flex; align-items:center; gap:8px; color:var(--ink-dim); }
+  .swatch { width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+
+  #controls { bottom:0; left:0; right:0; padding:14px 24px 18px; border:none; border-top:1px solid var(--line); display:flex; align-items:center; gap:16px; background: linear-gradient(0deg, rgba(26,22,17,.95), rgba(26,22,17,.6)); }
+  .btn { background:var(--bg-soft); border:1px solid var(--line); color:var(--ink); width:34px; height:34px; border-radius:3px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition: border-color .15s, color .15s; }
+  .btn:hover { border-color:var(--ember-dim); color:var(--ember); }
+  .btn.primary { background:var(--ember); color:#1a1611; border-color:var(--ember); font-weight:700; }
+  #turnLabel { font-family:'IBM Plex Mono', monospace; font-size:12px; color:var(--ink-dim); min-width:88px; }
+  #turnLabel b { color:var(--ink); }
+  #track { flex:1; height:3px; background:var(--line); border-radius:2px; position:relative; cursor:pointer; }
+  #track-fill { position:absolute; left:0; top:0; height:100%; background:var(--ember); border-radius:2px; width:0%; }
+  #speed { display:flex; align-items:center; gap:8px; font-family:'IBM Plex Mono', monospace; font-size:10px; color:var(--ink-dim); }
+  #speed input { accent-color: var(--ember); }
+
+  .label3d { position:absolute; transform: translate(-50%,-50%); font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--ink-dim); pointer-events:none; white-space:nowrap; }
+  .label3d.endpoint { color: var(--ember); font-weight:600; }
+</style>
+</head>
+<body>
+
+<div id="inputScreen">
+  <div id="inputBox">
+    <h1>lem-in <span>/</span> colony visualizer</h1>
+    <p>Paste the full output of your program (<code>go run ./cmd/lem-in yourfile.txt</code>) — the echoed
+    file content, the blank line, and the turn-by-turn moves. Nothing else needed.</p>
+    <textarea id="pasteArea" placeholder="4
+##start
+0 0 3
+2 2 5
+3 4 0
+##end
+1 8 3
+0-2
+2-3
+3-1
+
+L1-2
+L1-3 L2-2
+..."></textarea>
+    <div id="inputActions">
+      <button class="textbtn primary" id="visualizeBtn">Visualize</button>
+      <button class="textbtn" id="loadExampleBtn">Load a sample</button>
+    </div>
+    <div id="parseError"></div>
+  </div>
+</div>
+
+<div id="scene"></div>
+<div id="labels"></div>
+
+<div class="panel" id="header">
+  <h1>lem-in <span>/</span> colony visualizer</h1>
+  <div style="display:flex; align-items:center; gap:14px;">
+    <div class="meta" id="metaLine"></div>
+    <button class="textbtn" id="newInputBtn">⟲ new input</button>
+  </div>
+</div>
+
+<div class="panel" id="legend"></div>
+
+<div class="panel" id="controls">
+  <button class="btn" id="stepBack" title="Previous turn">◂</button>
+  <button class="btn primary" id="play" title="Play / pause">▶</button>
+  <button class="btn" id="stepFwd" title="Next turn">▸</button>
+  <div id="turnLabel">turn <b id="turnNum">0</b> / <span id="turnMax">0</span></div>
+  <div id="track"><div id="track-fill"></div></div>
+  <div id="speed">SPEED <input type="range" id="speedSlider" min="400" max="2000" value="1000" step="100"></div>
+</div>
+
+<script>
+const SAMPLE_OUTPUT = `10
+##start
+start 1 6
+0 4 8
+o 6 8
+n 6 6
+e 8 4
+t 1 9
+E 5 9
+a 8 9
+m 8 6
+h 4 6
+A 5 2
+c 8 1
+k 11 2
+##end
+end 11 6
+start-t
+n-e
+a-m
+A-c
+0-o
+E-a
+k-end
+start-h
+o-n
+m-end
+t-E
+start-0
+h-A
+e-end
+c-k
+n-m
+h-n
+
+L1-h L3-t
+L1-n L3-E L2-h L5-t
+L1-e L3-a L2-n L5-E L4-h L7-t
+L1-end L3-m L2-e L5-a L4-n L7-E L6-h L9-t
+L3-end L2-end L5-m L4-e L7-a L6-n L9-E L8-h
+L5-end L4-end L7-m L6-e L9-a L8-n L10-h
+L7-end L6-end L9-m L8-e L10-n
+L9-end L8-end L10-e
+L10-end`;
+
+document.getElementById('loadExampleBtn').onclick = () => {
+  document.getElementById('pasteArea').value = SAMPLE_OUTPUT;
+};
+
+// ---------- Parsing: mirrors the Go parser's grammar ----------
+function isLinkLine(line) {
+  if (/\s/.test(line)) return false;
+  const parts = line.split('-');
+  return parts.length === 2 && parts[0] !== '' && parts[1] !== '';
+}
+
+function parseOutput(text) {
+  const rawLines = text.split(/\r?\n/);
+  // split into "colony block" and "turns block" on the first blank line
+  let blankIdx = rawLines.findIndex(l => l.trim() === '');
+  let colonyLines, turnLines;
+  if (blankIdx === -1) { colonyLines = rawLines; turnLines = []; }
+  else { colonyLines = rawLines.slice(0, blankIdx); turnLines = rawLines.slice(blankIdx + 1).filter(l => l.trim() !== ''); }
+
+  let idx = 0;
+  while (idx < colonyLines.length && (colonyLines[idx].trim() === '' || colonyLines[idx].trim().startsWith('#') && colonyLines[idx].trim() !== '##start' && colonyLines[idx].trim() !== '##end')) idx++;
+  if (idx >= colonyLines.length) throw new Error('Could not find ant count line.');
+  const numAnts = parseInt(colonyLines[idx].trim(), 10);
+  if (isNaN(numAnts) || numAnts <= 0) throw new Error('Invalid or missing ant count on line: "' + colonyLines[idx] + '"');
+  idx++;
+
+  const rooms = {}; // name -> {x,y}
+  const roomOrder = [];
+  const links = [];
+  let start = null, end = null;
+  let nextIsStart = false, nextIsEnd = false;
+
+  for (; idx < colonyLines.length; idx++) {
+    const line = colonyLines[idx].trim();
+    if (line === '') continue;
+    if (line === '##start') { nextIsStart = true; continue; }
+    if (line === '##end') { nextIsEnd = true; continue; }
+    if (line.startsWith('#')) continue;
+    if (isLinkLine(line)) {
+      const [a, b] = line.split('-');
+      links.push([a, b]);
+      continue;
+    }
+    const fields = line.split(/\s+/);
+    if (fields.length !== 3) throw new Error('Malformed room line: "' + line + '"');
+    const [name, xs, ys] = fields;
+    const x = parseInt(xs, 10), y = parseInt(ys, 10);
+    if (isNaN(x) || isNaN(y)) throw new Error('Invalid coordinates on room line: "' + line + '"');
+    rooms[name] = { x, y };
+    roomOrder.push(name);
+    if (nextIsStart) { start = name; nextIsStart = false; }
+    if (nextIsEnd) { end = name; nextIsEnd = false; }
+  }
+  if (!start) throw new Error('No ##start room found.');
+  if (!end) throw new Error('No ##end room found.');
+
+  // parse turn lines into per-ant move sequences
+  const antIdsSet = new Set();
+  const parsedTurns = turnLines.map(line => {
+    const moves = [];
+    line.trim().split(/\s+/).forEach(tok => {
+      const m = tok.match(/^L(\d+)-(.+)$/);
+      if (m) { moves.push([m[1], m[2]]); antIdsSet.add(m[1]); }
+    });
+    return moves;
+  });
+  const antIds = Array.from(antIdsSet).sort((a,b) => Number(a) - Number(b));
+
+  // reconstruct each ant's full room-path from the moves, to group ants by route
+  const antRoute = {};
+  antIds.forEach(id => antRoute[id] = [start]);
+  parsedTurns.forEach(moves => {
+    moves.forEach(([id, room]) => antRoute[id].push(room));
+  });
+
+  return { numAnts, rooms, roomOrder, links, start, end, antIds, parsedTurns, antRoute };
+}
+
+// ---------- Global three.js state, rebuilt on each new input ----------
+let scene, camera, renderer, container;
+let roomPos = {}, antMeshes = {}, roomMeshes = {};
+let positionsByTurn = [], maxTurn = 0, antIds = [];
+let turn = 0, playing = false, animStart = 0, animDuration = 700;
+let fromPos = {}, toPos = {};
+let radius = 26, azimuth = Math.PI * 0.28, elevation = 0.55;
+
+function initSceneOnce() {
+  container = document.getElementById('scene');
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x1a1611);
+  scene.fog = new THREE.Fog(0x1a1611, 30, 70);
+  camera = new THREE.PerspectiveCamera(45, window.innerWidth/window.innerHeight, 0.1, 200);
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+  container.appendChild(renderer.domElement);
+
+  container.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+  window.addEventListener('mouseup', () => dragging = false);
+  window.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    azimuth -= (e.clientX - lastX) * 0.006;
+    elevation += (e.clientY - lastY) * 0.006;
+    lastX = e.clientX; lastY = e.clientY;
+    updateCamera();
+  });
+  container.addEventListener('wheel', e => {
+    radius = Math.max(8, Math.min(60, radius + e.deltaY * 0.02));
+    updateCamera();
+  }, { passive: true });
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth/window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  requestAnimationFrame(animate);
+}
+let dragging = false, lastX = 0, lastY = 0;
+function updateCamera() {
+  const el = Math.max(0.15, Math.min(1.4, elevation));
+  camera.position.set(radius*Math.cos(el)*Math.sin(azimuth), radius*Math.sin(el), radius*Math.cos(el)*Math.cos(azimuth));
+  camera.lookAt(0,0,0);
+}
+
+function clearScene() {
+  while (scene.children.length) scene.remove(scene.children[0]);
+  document.getElementById('labels').innerHTML = '';
+}
+
+const PALETTE = ['#e8a33d','#4fb3a6','#c0699a','#7d9d5c','#5a86c9','#d9705a','#b39ddb','#f2c94c'];
+
+function buildScene(data) {
+  clearScene();
+  scene.add(new THREE.AmbientLight(0xffffff, 0.55));
+  const key = new THREE.DirectionalLight(0xffe8c0, 0.9); key.position.set(10,20,10); scene.add(key);
+  const rim = new THREE.DirectionalLight(0x4fb3a6, 0.3); rim.position.set(-10,5,-10); scene.add(rim);
+  const floor = new THREE.Mesh(new THREE.CircleGeometry(30,48), new THREE.MeshStandardMaterial({ color:0x241f18, roughness:1 }));
+  floor.rotation.x = -Math.PI/2; floor.position.y = -0.6; scene.add(floor);
+
+  const names = data.roomOrder;
+  const cx = names.reduce((s,n) => s + data.rooms[n].x, 0) / names.length;
+  const cy = names.reduce((s,n) => s + data.rooms[n].y, 0) / names.length;
+  const SCALE = 3.4;
+  roomPos = {};
+  names.forEach(n => roomPos[n] = new THREE.Vector3((data.rooms[n].x - cx)*SCALE, 0, (data.rooms[n].y - cy)*SCALE));
+
+  roomMeshes = {};
+  names.forEach(n => {
+    const isEndpoint = (n === data.start || n === data.end);
+    const geo = new THREE.SphereGeometry(isEndpoint ? 0.55 : 0.4, 20, 20);
+    const mat = new THREE.MeshStandardMaterial({ color: isEndpoint ? 0xe8a33d : 0x9c8f74, emissive: isEndpoint ? 0x5a3a10 : 0x000000, roughness:0.5, metalness:0.1 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(roomPos[n]);
+    scene.add(mesh);
+    roomMeshes[n] = mesh;
+    if (isEndpoint) {
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.75,0.85,32), new THREE.MeshBasicMaterial({ color:0xe8a33d, side:THREE.DoubleSide, transparent:true, opacity:0.6 }));
+      ring.rotation.x = -Math.PI/2; ring.position.copy(roomPos[n]).setY(0.02); scene.add(ring);
+    }
+  });
+
+  // group ants by identical reconstructed route -> assign palette color per unique route
+  const routeKeyOf = {};
+  const uniqueRoutes = [];
+  data.antIds.forEach(id => {
+    const key = data.antRoute[id].join('>');
+    if (!uniqueRoutes.includes(key)) uniqueRoutes.push(key);
+    routeKeyOf[id] = key;
+  });
+  const colorForRoute = {};
+  uniqueRoutes.forEach((k, i) => colorForRoute[k] = PALETTE[i % PALETTE.length]);
+
+  // edges used by each route, for highlighting tunnels
+  const edgeColor = {};
+  uniqueRoutes.forEach(k => {
+    const seq = k.split('>');
+    for (let i = 0; i < seq.length - 1; i++) {
+      const ek = [seq[i], seq[i+1]].sort().join('-');
+      edgeColor[ek] = colorForRoute[k];
+    }
+  });
+
+  function makeTunnel(a, b, color, opacity) {
+    const pa = roomPos[a], pb = roomPos[b];
+    const dir = new THREE.Vector3().subVectors(pb, pa);
+    const len = dir.length();
+    const geo = new THREE.CylinderGeometry(0.08, 0.08, len, 8);
+    const mat = new THREE.MeshStandardMaterial({ color, transparent:true, opacity, roughness:0.8 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(new THREE.Vector3().addVectors(pa,pb).multiplyScalar(0.5));
+    mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0), dir.clone().normalize());
+    scene.add(mesh);
+  }
+  data.links.forEach(([a,b]) => {
+    const ek = [a,b].sort().join('-');
+    const c = edgeColor[ek] ? new THREE.Color(edgeColor[ek]).getHex() : 0x4a4232;
+    makeTunnel(a, b, c, edgeColor[ek] ? 0.85 : 0.5);
+  });
+
+  antMeshes = {};
+  data.antIds.forEach(id => {
+    const color = new THREE.Color(colorForRoute[routeKeyOf[id]]).getHex();
+    const geo = new THREE.SphereGeometry(0.22, 12, 12);
+    const mat = new THREE.MeshStandardMaterial({ color, emissive: 0x201a10, roughness:0.3 });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.copy(roomPos[data.start]).setY(0.5);
+    scene.add(mesh);
+    antMeshes[id] = mesh;
+  });
+
+  // labels
+  const labelLayer = document.getElementById('labels');
+  const labelEls = {};
+  names.forEach(n => {
+    const el = document.createElement('div');
+    const isEndpoint = (n === data.start || n === data.end);
+    el.className = 'label3d' + (isEndpoint ? ' endpoint' : '');
+    el.textContent = n;
+    labelLayer.appendChild(el);
+    labelEls[n] = el;
+  });
+  window._labelEls = labelEls;
+  window._labelNames = names;
+
+  // legend
+  const legendEl = document.getElementById('legend');
+  legendEl.innerHTML = uniqueRoutes.map(k => {
+    const count = data.antIds.filter(id => routeKeyOf[id] === k).length;
+    return `<div class="legend-row"><span class="swatch" style="background:${colorForRoute[k]}"></span> ${k.split('>').join('·')} (${count} ant${count>1?'s':''})</div>`;
+  }).join('');
+
+  document.getElementById('metaLine').textContent =
+    `${names.length} rooms · ${data.links.length} tunnels · ${data.numAnts} ants · ${uniqueRoutes.length} path${uniqueRoutes.length>1?'s':''}`;
+
+  // playback data
+  antIds = data.antIds;
+  positionsByTurn = [];
+  let cur = {}; antIds.forEach(id => cur[id] = data.start);
+  positionsByTurn.push({...cur});
+  data.parsedTurns.forEach(moves => {
+    moves.forEach(([id, room]) => cur[id] = room);
+    positionsByTurn.push({...cur});
+  });
+  maxTurn = positionsByTurn.length - 1;
+  document.getElementById('turnMax').textContent = maxTurn;
+
+  fromPos = {}; toPos = {};
+  antIds.forEach(id => { fromPos[id] = roomPos[data.start].clone(); toPos[id] = roomPos[data.start].clone(); });
+  goToTurn(0, false);
+  updateCamera();
+}
+
+function goToTurn(n, animate = true) {
+  n = Math.max(0, Math.min(maxTurn, n));
+  antIds.forEach(id => {
+    fromPos[id] = antMeshes[id].position.clone();
+    const roomName = positionsByTurn[n][id];
+    toPos[id] = roomPos[roomName].clone().setY(0.5);
+  });
+  turn = n;
+  animStart = performance.now();
+  if (!animate) antIds.forEach(id => antMeshes[id].position.copy(toPos[id]));
+  document.getElementById('turnNum').textContent = turn;
+  document.getElementById('track-fill').style.width = (maxTurn === 0 ? 0 : turn/maxTurn*100) + '%';
+}
+
+function updateLabels() {
+  if (!window._labelNames) return;
+  window._labelNames.forEach(n => {
+    const pos = roomPos[n].clone(); pos.y += 0.9; pos.project(camera);
+    const x = (pos.x*0.5+0.5)*window.innerWidth, y = (-pos.y*0.5+0.5)*window.innerHeight;
+    const el = window._labelEls[n];
+    el.style.left = x+'px'; el.style.top = y+'px';
+    el.style.display = pos.z > 1 ? 'none' : 'block';
+  });
+}
+
+let lastAutoAdvance = 0;
+function animate(now) {
+  requestAnimationFrame(animate);
+  if (!scene) return;
+  const t = Math.min(1, (now-animStart)/animDuration);
+  const ease = t < 0.5 ? 2*t*t : 1 - Math.pow(-2*t+2,2)/2;
+  antIds.forEach(id => antMeshes[id] && antMeshes[id].position.lerpVectors(fromPos[id], toPos[id], ease));
+  if (playing && now - lastAutoAdvance > Number(document.getElementById('speedSlider').value)) {
+    lastAutoAdvance = now;
+    if (turn >= maxTurn) { playing = false; document.getElementById('play').textContent = '▶'; }
+    else goToTurn(turn + 1);
+  }
+  updateLabels();
+  renderer.render(scene, camera);
+}
+
+// ---------- Controls wiring ----------
+document.getElementById('stepFwd').onclick = () => { playing=false; document.getElementById('play').textContent='▶'; goToTurn(turn+1); };
+document.getElementById('stepBack').onclick = () => { playing=false; document.getElementById('play').textContent='▶'; goToTurn(turn-1); };
+document.getElementById('play').onclick = () => {
+  playing = !playing;
+  document.getElementById('play').textContent = playing ? '❚❚' : '▶';
+  if (playing && turn >= maxTurn) goToTurn(0, false);
+};
+document.getElementById('track').addEventListener('click', e => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  const pct = (e.clientX - rect.left) / rect.width;
+  playing = false; document.getElementById('play').textContent = '▶';
+  goToTurn(Math.round(pct * maxTurn));
+});
+document.getElementById('newInputBtn').onclick = () => {
+  playing = false;
+  document.getElementById('inputScreen').classList.remove('hidden');
+};
+document.getElementById('visualizeBtn').onclick = () => {
+  const text = document.getElementById('pasteArea').value;
+  const errEl = document.getElementById('parseError');
+  try {
+    const data = parseOutput(text);
+    errEl.textContent = '';
+    if (!scene) initSceneOnce();
+    buildScene(data);
+    document.getElementById('inputScreen').classList.add('hidden');
+  } catch (e) {
+    errEl.textContent = 'Parse error: ' + e.message;
+  }
+};
+</script>
+</body>
+</html>
