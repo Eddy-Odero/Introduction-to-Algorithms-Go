@@ -6,7 +6,7 @@ func FindShortestPath(c *Colony) []*Room {
 	}
 
 	visited := make(map[*Room]bool)
-	cameFrom := make(map[*Room]*Room) // room -> the room we reached it from
+	cameFrom := make(map[*Room]*Room) 
 
 	queue := []*Room{c.Start}
 	visited[c.Start] = true

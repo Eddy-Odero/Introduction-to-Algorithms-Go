@@ -1,169 +1,131 @@
-# lem-in
+# Lem-in (Ant Farm Simulation)
 
-A digital ant farm: read a colony description (rooms + tunnels + ant count)
-from a file, compute the fastest way to move all ants from `##start` to
-`##end`, and print each turn's moves.
+Lem-in is a digital ant farm simulation written entirely in Go. The program reads a structural description of an ant colony (rooms, coordinates, tunnels, and a population of ants) from a file, discovers the optimal path combination to avoid traffic jams, and simulates the quickest way to move all ants from the `##start` room to the `##end` room.
 
-Built step-by-step as a learning project. Each phase below gets implemented,
-tested, then documented with findings/issues before moving to the next.
+## Table of Contents
+- [Project Structure](#project-structure)
+- [Installation & Cloning](#installation--cloning)
+- [How It Works](#how-it-works)
+- [Input & Output Format](#input--output-format)
+- [Testing](#testing)
 
-## Goal
+---
 
-Given a file describing:
-- number of ants
-- rooms (`name x y`)
-- links between rooms (`name1-name2`)
-- one `##start` and one `##end` room
+## Project Structure
 
-Output:
-```
-number_of_ants
-the_rooms
-the_links
+The project follows a clean, modular design separating parsing, graph theory, distribution strategy, and execution tracing:
 
-Lx-y Lz-w Lr-o ...   <- turn 1
-Lx-y Lz-w ...         <- turn 2
-...
-```
-Where each `Lx-y` means "ant x moves to room y" this turn.
-
-If the input is malformed in any way (bad ant count, no start/end, duplicate
-rooms, links to unknown rooms, cycles that trap parsing, etc.) print:
-```
-ERROR: invalid data format
-```
-(optionally with a more specific suffix).
-
-## Project structure
-
-```
+```text
 lem-in/
-├── cmd/lem-in/        # main package, entry point, wires everything together
-├── internal/parser/    # Phase 2-3: read file -> validated in-memory model
-├── internal/graph/     # Phase 5-6: graph representation + path-finding (BFS, multi-path)
-├── internal/solver/    # Phase 7: decide which ants take which path, minimize turns
-├── internal/simulator/ # Phase 8: turn-by-turn movement simulation + formatted output
-├── testdata/           # sample colony files, valid and invalid, for manual/automated testing
+├── cmd/lem-in/        # Main package, entry point, wires everything together
+├── internal/parser/    # Phase 2-3: Reads files -> builds validated in-memory models
+├── internal/graph/     # Phase 5-6: Graph representation + path-finding algorithms (BFS, multi-path)
+├── internal/solver/    # Phase 7: Coordinates assignment logic to minimize total operational turns
+├── internal/simulator/ # Phase 8: Turn-by-turn movement simulation + formatted standard output
+├── testdata/           # Sample colony maps (valid and invalid) for testing validation states
 ├── go.mod
-└── README.md           # this file
+└── README.md
 ```
 
-## Phases
+---
 
-- [x] **Phase 1** — Project skeleton: read filename from args, read file contents
-- [x] **Phase 2** — Data structures: `Room`, graph adjacency representation
-- [x] **Phase 3** — Parsing: lines -> rooms, links, start/end, ant count, skip comments
-- [x] **Phase 4** — Validation: all the ways input can be invalid -> `ERROR: invalid data format`
-- [x] **Phase 5** — BFS: find a single shortest path start -> end
-- [x] **Phase 6** — Multiple shortest/non-overlapping paths (max-flow style thinking)
-- [x] **Phase 7** — Assign ants to paths to minimize total turns
-- [x] **Phase 8** — Turn-by-turn simulation + output formatting matching spec
+## Installation & Cloning
 
-## Findings & Issues Log
+To download and run this project locally, execute the following steps in your terminal:
 
-Notes, bugs, and "aha" moments get appended here after each phase, in order.
+1. **Clone the Repository**
+   ```bash
+   git clone https://learn.zone01kisumu.ke/git/edwaodero/lem-in
+   cd lem-in
+   ```
 
-### Phase 1
-- `os.Args` check must be `!= 2` (exactly one arg expected), not `< 2` — otherwise
-  extra stray arguments are silently ignored.
-- Every error path must `return` (or `os.Exit`) immediately — printing an error
-  and letting execution fall through to the next line still runs that next line
-  (e.g. printing an empty string after a failed read).
-- Error output should use the spec's required prefix `ERROR: invalid data format`
-  rather than ad-hoc Go error strings — raw Go errors (`open x: no such file...`)
-  leak internal detail and don't match spec.
-- Confirmed: reading + `strings.Split` on `"\n"` correctly preserves comment
-  lines (`#comment`) and section markers (`##start`, `##end`) as plain lines —
-  parsing/filtering these is deferred to Phase 3, not handled here.
-- Verified against `testdata/sample.txt` (spec's example colony): all 24 lines
-  print correctly, including both comment lines and both markers.
+2. **Run the Program**
+   Pass any valid colony map path from the `testdata/` directory or your local files as an argument:
+   ```bash
+   go run ./cmd/lem-in/ testdata/valid_colony.txt
+   ```
 
-### Phase 2
-- `Room.Links []*Room` stores pointers, not copies — two rooms linking to the
-  same neighbor share the exact same `*Room` in memory. Important once ant
-  simulation needs to check/mark room occupancy.
-- Deliberately did NOT put a `Visited` flag on `Room`. Rooms get reused across
-  multiple path searches (Phase 6), so per-search state must live in a
-  separate map created fresh each search, not as a permanent struct field.
-- `Colony.Rooms` is a `map[string]*Room` for O(1) name lookup while linking
-  rooms together during parsing.
-- `AddRoom`/`AddLink` return `bool` (not error) to signal duplicate-room /
-  unknown-room-in-link conditions — parser (Phase 3/4) decides how to turn
-  that into an `ERROR: invalid data format` message.
+---
 
-### Phase 3 & 4
-- Ant count = first non-empty, non-comment line; must parse as a positive int.
-- `##start`/`##end` are markers on their own line — they flag that the NEXT
-  room line is the start/end room, they are not room names themselves.
-- Link lines (`name1-name2`) are detected by: no whitespace + exactly one `-`.
-  This distinguishes them from room lines (`name x y`, whitespace-separated).
-- Links are parsed into a "pending" list and only wired into the graph AFTER
-  all room lines are processed. This avoids false "unknown room" errors that
-  would happen if a link merely appeared earlier in the file than one of its
-  rooms (order in the file shouldn't matter for correctness, only for us
-  needing two passes).
-- Verified against `testdata/example00.txt`: 4 ants, start room "0", end room
-  "1", 4 total rooms, links matched expectations.
-- Still need to verify actual error cases (duplicate start markers, links to
-  unknown rooms, bad ant count) produce `ERROR: invalid data format` instead
-  of crashing — flagged to test in parallel with later phases, not yet done.
+## How It Works
 
-### Phase 5
-- BFS explores layer-by-layer (FIFO queue), so the first time it dequeues
-  `End`, that's guaranteed the shortest path by room-count — this is the
-  whole reason BFS (not DFS) is used here.
-- Path reconstruction needs a `cameFrom` map built during the search, then
-  walked backward from `End` to `Start` and reversed.
-- Verified against `testdata/example00.txt`: BFS correctly returned
-  `0 -> 2 -> 3 -> 1`, matching the graph's actual link structure.
+The simulation engine coordinates execution through 4 internal layers:
+1. **`parser`**: Validates structural safety rules (e.g., checks duplicate room names, coordinates, structural loops, presence of `##start`/`##end`).
+2. **`graph`**: Generates a network graph mapping node rooms. Employs multi-path discovery algorithms to gather combinations of non-overlapping (vertex-disjoint) path configurations.
+3. **`solver`**: Evaluates queue depths dynamically to determine exactly which routes optimize the traffic flow for N total ants.
+4. **`simulator`**: Tracks real-time turn stepping, outputting standard movement string records while enforcing room capacities.
 
-### Phase 6
-- Repeated BFS approach: find shortest path, mark its edges "used", repeat
-  until no more paths found. Edge identity normalized regardless of
-  traversal direction (`edgeKey`), since tunnels are bidirectional.
-- Known limitation (not yet hit in testing): this greedy approach isn't
-  guaranteed globally optimal in every possible graph — true optimality in
-  max-flow theory sometimes needs "reverse/residual" edges to undo an
-  earlier path choice. Standard approach for lem-in regardless; revisit only
-  if a specific map produces a clearly suboptimal path set.
-- Verified against `testdata/example01.txt` (classic 14-room map, 10 ants):
-  found 2 disjoint paths — `start-h-n-e-end` (4 edges) and
-  `start-t-E-a-m-end` (5 edges) — matching the known-correct result for
-  this well-known test map.
-- Verified against `testdata/example00.txt`: correctly found only 1 path
-  (simple 4-room chain, no alternate route exists).
+---
 
-### Phase 7
-- Turns for a path = `edges + ants_on_path - 1`. Greedy assignment (always
-  give the next ant to whichever path currently has the lowest projected
-  finish time) is optimal here since all ants are equal-size unit work —
-  proven correct against `example01.txt`: 10 ants across a 4-edge and
-  5-edge path split 6/4, giving max(3+6, 4+4) = 9 turns; confirmed no
-  other split does better.
+## Input & Output Format
 
-### Phase 8
-- Because Phase 6 guarantees paths never share a room (except Start/End,
-  unlimited capacity), each path's ant queue can be simulated completely
-  independently — no cross-path collision bookkeeping needed.
-- One ant enters a path per turn; already-in-transit ants are advanced
-  first (same turn) before a new ant enters, so the vacated first room is
-  free before the next ant conceptually occupies it.
-- Verified turn counts exactly match the Phase 7 math:
-  `example00.txt` -> 6 turns (3 edges + 4 ants - 1).
-  `example01.txt` -> 9 turns (matches the 6/4 split computed in Phase 7).
-- Verified `badexample00.txt` (bad ant count) still correctly produces
-  `ERROR: invalid data format, invalid number of Ants` instead of crashing
-  or producing partial output -- first deferred error-case test, passing.
-- Core pipeline (parse -> validate -> multi-path -> assign -> simulate ->
-  print) is now functionally complete end-to-end.
-- Decision: "no path exists between start and end" (valid topology, just
-  unsolvable) now returns `ERROR: invalid data format, no path found`,
-  checked BEFORE printing file content -- consistent with every other
-  invalid-input case. The subject's wording here is genuinely ambiguous
-  (grammatically "no path" reads as its own case, separate from the list
-  of format violations), but treating it as an error is the safer/more
-  defensible interpretation and matches common grading expectations.
-- Final validation sweep, all confirmed working: duplicate room names,
-  links to unknown/undefined rooms, missing `##start`, missing `##end`,
-  bad ant count, wrong argument count, unreadable file, self-linking room
-  (no infinite loop), disconnected start/end.
+### Example Input File
+```text
+3
+##start
+0 1 2
+##end
+1 9 2
+2 5 0
+3 5 4
+0-2
+0-3
+2-1
+3-1
+```
+
+### Example Simulation Output
+```text
+[Initial map configuration printed here...]
+
+L1-2 L2-3
+L1-1 L2-1 L3-2
+L3-1
+```
+
+---
+
+## Testing
+
+Unit tests are co-located directly inside each subsystem folder within `internal/` to independently verify data parsing accuracy, routing choices, and safety edge cases.
+
+### Run All Tests Simultaneously
+To scan the entire workspace recursively and execute every test file found across all subfolders:
+```bash
+go test -v ./...
+```
+
+### Test Specific Subsystems
+If you are iterating on a single package layer and want focused feedback, run your tests locally inside that target directory:
+
+* **Test the Parser Layer:**
+  ```bash
+  go test -v ./internal/parser/...
+  ```
+* **Test Path-finding Algorithms:**
+  ```bash
+  go test -v ./internal/graph/...
+  ```
+* **Test Optimization & Distribution Logic:**
+  ```bash
+  go test -v ./internal/solver/...
+  ```
+* **Test Simulation Calculations:**
+  ```bash
+  go test -v ./internal/simulator/...
+  ```
+
+### Verify Code Coverage
+To analyze how extensively your unit tests cover your code statements within the core logic domains:
+```bash
+go test -cover ./internal/...
+```
+## Read file build time
+# 1. Compile your program cleanly
+```bash
+go build -o lem-in ./cmd/lem-in/
+```
+# 2. Time the compiled binary against the map file
+```bash
+time ./lem-in testdata/example06.txt
+```

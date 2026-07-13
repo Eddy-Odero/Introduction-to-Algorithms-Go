@@ -3,8 +3,7 @@ package graph
 import "testing"
 
 func TestFindAllPathsFindsDisjointRoutes(t *testing.T) {
-	// Two equal-length disjoint routes from start to end:
-	// start-a-b-end and start-c-d-end
+
 	c := NewColony()
 	for _, n := range []string{"start", "a", "b", "end", "c", "d"} {
 		c.AddRoom(n, 0, 0)
@@ -23,7 +22,6 @@ func TestFindAllPathsFindsDisjointRoutes(t *testing.T) {
 		t.Fatalf("expected 2 disjoint paths, got %d", len(paths))
 	}
 
-	// no intermediate room (excluding start/end) should be used by more than one path
 	seen := map[string]int{}
 	for _, p := range paths {
 		for _, r := range p {
@@ -41,7 +39,7 @@ func TestFindAllPathsFindsDisjointRoutes(t *testing.T) {
 }
 
 func TestFindAllPathsSingleRouteOnly(t *testing.T) {
-	c := buildChain() // simple 0-1-2-3 chain, no alternate route
+	c := buildChain() 
 	paths := FindAllPaths(c)
 	if len(paths) != 1 {
 		t.Fatalf("expected exactly 1 path for a simple chain, got %d", len(paths))
