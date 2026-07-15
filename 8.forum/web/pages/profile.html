@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eddy_k — forum_</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">forum</a>
+    <div class="nav-links">
+      <a href="/">feed</a>
+      <a href="/new-post">new post</a>
+      <a href="/profile" class="current nav-user">eddy_k</a>
+      <a href="/logout">log out</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="page-head">
+    <span class="eyebrow">profile</span>
+    <h1>eddy_k</h1>
+    <p>Your posts and the posts you've liked.</p>
+  </div>
+
+  <div class="tabs">
+    <span class="tab active">my posts</span>
+    <span class="tab">liked posts</span>
+  </div>
+
+  <div class="feed">
+
+    <article class="post-card">
+      <div class="vote-rail positive">
+        <span class="score">+4</span>
+        <span class="breakdown">4/0</span>
+      </div>
+      <div class="post-body">
+        <h2><a href="/post?id=4">Kisumu Bitcoin Bootcamp Hackathon &mdash; recap + lessons learned</a></h2>
+        <div class="post-meta">posted by eddy_k &middot; 2 days ago</div>
+        <p class="post-excerpt">Our team built a Lightning-powered contact form in 36 hours. Here's what worked, what didn't, and what we'd do differently next time.</p>
+        <div class="tag-row">
+          <span class="tag">#hackathon</span>
+          <span class="tag">#bitcoin</span>
+        </div>
+        <div class="post-footer" style="margin-top:0.6rem;">
+          <span class="comment-count">2 comments</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <!--
+    Empty-state reference for when a user has no posts/likes yet
+    (kept here, hidden, as a template for Phase 5/7 wiring):
+
+  <div class="empty">
+    <p><strong>Nothing here yet.</strong></p>
+    <p>Posts you write will show up in this tab.</p>
+  </div>
+  -->
+</main>
+
+<footer class="footer">
+  <div class="container">forum &middot; Zone01/01Edu project</div>
+</footer>
+
+</body>
+</html>

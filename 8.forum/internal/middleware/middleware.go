@@ -6,7 +6,6 @@ import (
 	"time"
 )
 
-
 type statusRecorder struct {
 	http.ResponseWriter
 	status  int
@@ -14,6 +13,7 @@ type statusRecorder struct {
 }
 
 func (r *statusRecorder) WriteHeader(code int) {
+
 	if !r.written {
 		r.status = code
 		r.written = true
@@ -21,10 +21,10 @@ func (r *statusRecorder) WriteHeader(code int) {
 	r.ResponseWriter.WriteHeader(code)
 }
 
-
 func Logging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
+
 		rec := &statusRecorder{ResponseWriter: w, status: http.StatusOK}
 
 		next.ServeHTTP(rec, r)

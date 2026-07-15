@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>#technology — forum_</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">forum</a>
+    <div class="nav-links">
+      <a href="/">feed</a>
+      <a href="/category?name=technology" class="current">#technology</a>
+      <a href="/category?name=general">#general</a>
+      <a href="/new-post">new post</a>
+      <a href="/profile" class="nav-user">eddy_k</a>
+      <a href="/logout">log out</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="page-head">
+    <span class="eyebrow">subforum</span>
+    <h1>#technology</h1>
+    <p>Posts tagged technology, newest first.</p>
+  </div>
+
+  <div class="feed">
+
+    <article class="post-card">
+      <div class="vote-rail">
+        <span class="score">0</span>
+        <span class="breakdown">3/3</span>
+      </div>
+      <div class="post-body">
+        <h2><a href="/post?id=2">Anyone else's SQLite locking up under concurrent writes?</a></h2>
+        <div class="post-meta">posted by achieng_m &middot; 5 hours ago</div>
+        <p class="post-excerpt">Getting "database is locked" errors on my forum project the moment two requests hit at once. Is WAL mode enough or do I need to serialize writes myself?</p>
+        <div class="tag-row">
+          <span class="tag">#sqlite</span>
+          <span class="tag">#help</span>
+        </div>
+        <div class="post-footer" style="margin-top:0.6rem;">
+          <span class="comment-count">3 comments</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="post-card">
+      <div class="vote-rail positive">
+        <span class="score">+12</span>
+        <span class="breakdown">14/2</span>
+      </div>
+      <div class="post-body">
+        <h2><a href="/post?id=1">Edmonds-Karp got me further than BFS ever did on lem-in</a></h2>
+        <div class="post-meta">posted by kanyi_dev &middot; 2 hours ago</div>
+        <p class="post-excerpt">Spent three days stuck on suboptimal paths before switching to max-flow with room-splitting&hellip;</p>
+        <div class="tag-row">
+          <span class="tag">#go</span>
+          <span class="tag">#algorithms</span>
+        </div>
+        <div class="post-footer" style="margin-top:0.6rem;">
+          <span class="comment-count">6 comments</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">forum &middot; Zone01/01Edu project</div>
+</footer>
+
+</body>
+</html>

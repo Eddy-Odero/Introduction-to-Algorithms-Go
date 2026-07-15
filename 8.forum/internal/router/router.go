@@ -1,4 +1,3 @@
-// Package router builds the top-level http.Handler for the forum.
 package router
 
 import (
@@ -18,7 +17,6 @@ func New() http.Handler {
 
 	fileServer := http.FileServer(http.Dir(staticDir))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
-
 	mux.HandleFunc("/", pageHandler)
 
 	return mux

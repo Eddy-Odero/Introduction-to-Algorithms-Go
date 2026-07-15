@@ -26,7 +26,6 @@ func main() {
 		IdleTimeout:  60 * time.Second,
 	}
 
-	// Run the server in a goroutine so main can block on the shutdown signal.
 	go func() {
 		log.Printf("listening on %s", addr)
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
@@ -34,7 +33,6 @@ func main() {
 		}
 	}()
 
-	// Block until we receive Ctrl+C or a termination signal.
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 	<-stop

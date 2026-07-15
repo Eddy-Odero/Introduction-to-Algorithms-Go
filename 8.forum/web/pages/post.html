@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Edmonds-Karp got me further than BFS ever did on lem-in — forum_</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand">forum</a>
+    <div class="nav-links">
+      <a href="/">feed</a>
+      <a href="/new-post">new post</a>
+      <a href="/profile" class="nav-user">eddy_k</a>
+      <a href="/logout">log out</a>
+    </div>
+  </div>
+</nav>
+
+<main class="container">
+  <div class="post-full">
+    <a href="/" style="font-size:0.85rem;">&larr; back to feed</a>
+
+    <div class="tag-row" style="margin-top:1rem;">
+      <span class="tag">#go</span>
+      <span class="tag">#algorithms</span>
+    </div>
+
+    <h1>Edmonds-Karp got me further than BFS ever did on lem-in</h1>
+    <div class="post-meta">posted by kanyi_dev &middot; 2 hours ago</div>
+
+    <div class="content">
+      <p>Spent three days stuck on suboptimal paths before switching to max-flow with room-splitting. BFS alone finds *a* path, but it doesn't guarantee the minimum number of turns when there are multiple valid routes through the colony.</p>
+      <p>Once I modeled each room as two split nodes (in/out) with capacity 1, Edmonds-Karp on the resulting flow network gave me the actual optimal path count. Sharing the writeup in case it saves someone else the detour.</p>
+    </div>
+
+    <div class="post-footer" style="margin: 1rem 0;">
+      <button class="btn-react active-like">&#9650; 14</button>
+      <button class="btn-react">&#9660; 2</button>
+    </div>
+
+    <hr class="divider">
+
+    <h2 style="font-family: var(--font-display); font-size: 1rem;">6 comments</h2>
+
+    <div class="comment">
+      <div class="vote-rail positive">
+        <span class="score">+3</span>
+      </div>
+      <div>
+        <div class="comment-meta">achieng_m &middot; 1 hour ago</div>
+        <div class="comment-body">This is exactly the trap I fell into. Did you cap the intermediate room splits at capacity 1 across the board or only for rooms with multiple neighbors?</div>
+        <div class="post-footer" style="margin-top:0.4rem;">
+          <button class="btn-react">&#9650; 3</button>
+          <button class="btn-react">&#9660; 0</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="comment">
+      <div class="vote-rail">
+        <span class="score">0</span>
+      </div>
+      <div>
+        <div class="comment-meta">mo_otieno &middot; 40 minutes ago</div>
+        <div class="comment-body">Would love to see the 3D visualizer you mentioned in standup, sounds like a great way to debug the ant paths visually.</div>
+        <div class="post-footer" style="margin-top:0.4rem;">
+          <button class="btn-react">&#9650; 1</button>
+          <button class="btn-react">&#9660; 1</button>
+        </div>
+      </div>
+    </div>
+
+    <form class="comment-form">
+      <div class="field">
+        <label for="comment">Add a comment</label>
+        <textarea id="comment" name="comment" placeholder="Share your thoughts..." style="min-height:90px;"></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Post comment</button>
+    </form>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="container">forum &middot; Zone01/01Edu project</div>
+</footer>
+
+</body>
+</html>
