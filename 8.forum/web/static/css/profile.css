@@ -1,0 +1,45 @@
+/* profile.html only */
+
+.profile-cover {
+  height: 140px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  background: var(--accent-gradient);
+}
+.profile-header {
+  padding: 0 1.25rem 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+.profile-avatar {
+  margin-top: -40px;
+  border: 4px solid var(--surface);
+}
+.profile-header h1 {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  margin: 0.75rem 0 0.15rem;
+}
+.profile-header .handle { color: var(--ink-faint); font-size: 0.88rem; margin: 0 0 0.75rem; }
+.profile-stats { display: flex; gap: 1.25rem; font-size: 0.85rem; color: var(--ink-soft); }
+.profile-stats strong { color: var(--ink); }
+
+.tabs {
+  display: flex;
+  gap: 0.4rem;
+  padding: 0 1.25rem;
+  margin-bottom: 1rem;
+}
+.tab {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ink-faint);
+  background: none;
+  border: none;
+  padding: 0.6rem 0.9rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+.tab:hover { color: var(--ink-soft); }
+.tab.active { color: var(--primary); border-bottom-color: var(--primary); }

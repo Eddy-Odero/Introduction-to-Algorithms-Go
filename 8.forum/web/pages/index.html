@@ -3,115 +3,185 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>forum_</title>
-<link rel="stylesheet" href="/static/css/style.css">
+<title>forum</title>
+<link rel="stylesheet" href="/static/css/base.css">
+<link rel="stylesheet" href="/static/css/index.css">
 </head>
 <body>
 
 <nav class="nav">
   <div class="nav-inner">
-    <a href="/" class="brand">forum</a>
-    <div class="nav-links">
-      <a href="/" class="current">feed</a>
-      <a href="/category?name=technology">#technology</a>
-      <a href="/category?name=general">#general</a>
-      <a href="/new-post">new post</a>
-      <a href="/profile" class="nav-user">eddy_k</a>
-      <a href="/logout">log out</a>
+    <a href="/" class="brand"><span class="brand-mark">f</span>forum</a>
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" placeholder="Search posts">
     </div>
+    <div class="nav-links">
+      <a href="/" class="nav-icon-link current" title="Feed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
+      </a>
+      <a href="/new-post" class="nav-icon-link" title="New post">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </a>
+      <a href="/profile" class="nav-icon-link" title="Profile">
+        <div class="avatar avatar-sm avatar-blue">EK</div>
+      </a>
+      <a href="/logout" class="nav-link-plain">Log out</a>
+      <button class="nav-burger" aria-label="Menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </button>
+    </div>
+  </div>
+  <div class="nav-mobile-panel">
+    <a href="/" class="current">Feed</a>
+    <a href="/category?name=technology">#technology</a>
+    <a href="/category?name=general">#general</a>
+    <a href="/new-post">New post</a>
+    <a href="/profile">Profile</a>
+    <a href="/logout">Log out</a>
   </div>
 </nav>
 
 <main class="container">
-  <div class="page-head">
-    <span class="eyebrow">all posts</span>
-    <h1>Feed</h1>
-    <p>Everything the community's posted, newest first.</p>
+
+  <a href="/new-post" class="card composer">
+    <div class="avatar avatar-md avatar-blue">EK</div>
+    <span class="composer-prompt">What's on your mind, Eddy?</span>
+  </a>
+
+  <div class="category-filter-row">
+    <span class="tag tag-general active">#general</span>
+    <span class="tag tag-technology">#technology</span>
+    <span class="tag tag-gaming">#gaming</span>
+    <span class="tag tag-random">#random</span>
   </div>
 
   <div class="feed">
 
-    <article class="post-card">
-      <div class="vote-rail positive">
-        <span class="score">+12</span>
-        <span class="breakdown">14/2</span>
-      </div>
-      <div class="post-body">
-        <h2><a href="/post?id=1">Edmonds-Karp got me further than BFS ever did on lem-in</a></h2>
-        <div class="post-meta">posted by kanyi_dev &middot; 2 hours ago</div>
-        <p class="post-excerpt">Spent three days stuck on suboptimal paths before switching to max-flow with room-splitting. Sharing the writeup in case it saves someone else the detour&hellip;</p>
-        <div class="tag-row">
-          <span class="tag">#go</span>
-          <span class="tag">#algorithms</span>
-        </div>
-        <div class="post-footer" style="margin-top:0.6rem;">
-          <span class="comment-count">6 comments</span>
+    <article class="card post-item">
+      <div class="post-item-head">
+        <div class="avatar avatar-md avatar-purple">KD</div>
+        <div class="who">
+          <span class="author">kanyi_dev</span>
+          <span class="meta">2 hours ago</span>
         </div>
       </div>
-    </article>
-
-    <article class="post-card">
-      <div class="vote-rail">
-        <span class="score">0</span>
-        <span class="breakdown">3/3</span>
+      <h2><a href="/post?id=1">Edmonds-Karp got me further than BFS ever did on lem-in</a></h2>
+      <p>Spent three days stuck on suboptimal paths before switching to max-flow with room-splitting. Sharing the writeup in case it saves someone else the detour&hellip;</p>
+      <div class="tag-row">
+        <span class="tag tag-technology">#technology</span>
       </div>
-      <div class="post-body">
-        <h2><a href="/post?id=2">Anyone else's SQLite locking up under concurrent writes?</a></h2>
-        <div class="post-meta">posted by achieng_m &middot; 5 hours ago</div>
-        <p class="post-excerpt">Getting "database is locked" errors on my forum project the moment two requests hit at once. Is WAL mode enough or do I need to serialize writes myself?</p>
-        <div class="tag-row">
-          <span class="tag">#sqlite</span>
-          <span class="tag">#help</span>
-        </div>
-        <div class="post-footer" style="margin-top:0.6rem;">
-          <span class="comment-count">3 comments</span>
-        </div>
+      <div class="action-row" data-target="post-1">
+        <button class="action-btn" data-type="like" data-count="14">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">14</span> Like
+        </button>
+        <button class="action-btn" data-type="dislike" data-count="2">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 12 12)"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">2</span> Dislike
+        </button>
+        <a href="/post?id=1" class="action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-9 8.5 8.79 8.79 0 01-4-1L3 20l1-4a8.38 8.38 0 01-1-4 8.5 8.5 0 018.5-8.5h.5A8.38 8.38 0 0121 11.5z"/></svg>
+          6 Comments
+        </a>
       </div>
     </article>
 
-    <article class="post-card">
-      <div class="vote-rail negative">
-        <span class="score">-2</span>
-        <span class="breakdown">1/3</span>
+    <article class="card post-item">
+      <div class="post-item-head">
+        <div class="avatar avatar-md avatar-teal">AM</div>
+        <div class="who">
+          <span class="author">achieng_m</span>
+          <span class="meta">5 hours ago</span>
+        </div>
       </div>
-      <div class="post-body">
-        <h2><a href="/post?id=3">Unpopular opinion: tabs are objectively better than spaces</a></h2>
-        <div class="post-meta">posted by mo_otieno &middot; 1 day ago</div>
-        <p class="post-excerpt">Come at me. Tabs let everyone set their own indent width, spaces force yours on everyone else's editor.</p>
-        <div class="tag-row">
-          <span class="tag">#random</span>
-        </div>
-        <div class="post-footer" style="margin-top:0.6rem;">
-          <span class="comment-count">11 comments</span>
-        </div>
+      <h2><a href="/post?id=2">Anyone else's SQLite locking up under concurrent writes?</a></h2>
+      <p>Getting "database is locked" errors on my forum project the moment two requests hit at once. Is WAL mode enough or do I need to serialize writes myself?</p>
+      <div class="tag-row">
+        <span class="tag tag-technology">#technology</span>
+      </div>
+      <div class="action-row" data-target="post-2">
+        <button class="action-btn" data-type="like" data-count="3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">3</span> Like
+        </button>
+        <button class="action-btn" data-type="dislike" data-count="3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 12 12)"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">3</span> Dislike
+        </button>
+        <a href="/post?id=2" class="action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-9 8.5 8.79 8.79 0 01-4-1L3 20l1-4a8.38 8.38 0 01-1-4 8.5 8.5 0 018.5-8.5h.5A8.38 8.38 0 0121 11.5z"/></svg>
+          3 Comments
+        </a>
       </div>
     </article>
 
-    <article class="post-card">
-      <div class="vote-rail positive">
-        <span class="score">+4</span>
-        <span class="breakdown">4/0</span>
+    <article class="card post-item">
+      <div class="post-item-head">
+        <div class="avatar avatar-md avatar-orange">MO</div>
+        <div class="who">
+          <span class="author">mo_otieno</span>
+          <span class="meta">1 day ago</span>
+        </div>
       </div>
-      <div class="post-body">
-        <h2><a href="/post?id=4">Kisumu Bitcoin Bootcamp Hackathon &mdash; recap + lessons learned</a></h2>
-        <div class="post-meta">posted by benja_k &middot; 2 days ago</div>
-        <p class="post-excerpt">Our team built a Lightning-powered contact form in 36 hours. Here's what worked, what didn't, and what we'd do differently next time.</p>
-        <div class="tag-row">
-          <span class="tag">#hackathon</span>
-          <span class="tag">#bitcoin</span>
+      <h2><a href="/post?id=3">Unpopular opinion: tabs are objectively better than spaces</a></h2>
+      <p>Come at me. Tabs let everyone set their own indent width, spaces force yours on everyone else's editor.</p>
+      <div class="tag-row">
+        <span class="tag tag-random">#random</span>
+      </div>
+      <div class="action-row" data-target="post-3">
+        <button class="action-btn" data-type="like" data-count="1">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">1</span> Like
+        </button>
+        <button class="action-btn" data-type="dislike" data-count="3">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 12 12)"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">3</span> Dislike
+        </button>
+        <a href="/post?id=3" class="action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-9 8.5 8.79 8.79 0 01-4-1L3 20l1-4a8.38 8.38 0 01-1-4 8.5 8.5 0 018.5-8.5h.5A8.38 8.38 0 0121 11.5z"/></svg>
+          11 Comments
+        </a>
+      </div>
+    </article>
+
+    <article class="card post-item">
+      <div class="post-item-head">
+        <div class="avatar avatar-md avatar-pink">BK</div>
+        <div class="who">
+          <span class="author">benja_k</span>
+          <span class="meta">2 days ago</span>
         </div>
-        <div class="post-footer" style="margin-top:0.6rem;">
-          <span class="comment-count">2 comments</span>
-        </div>
+      </div>
+      <h2><a href="/post?id=4">Kisumu Bitcoin Bootcamp Hackathon &mdash; recap + lessons learned</a></h2>
+      <div class="post-image" style="background: linear-gradient(135deg, #F77737, #833AB4);">event photo</div>
+      <p>Our team built a Lightning-powered contact form in 36 hours. Here's what worked, what didn't, and what we'd do differently next time.</p>
+      <div class="tag-row">
+        <span class="tag tag-general">#general</span>
+        <span class="tag tag-technology">#technology</span>
+      </div>
+      <div class="action-row" data-target="post-4">
+        <button class="action-btn" data-type="like" data-count="4">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">4</span> Like
+        </button>
+        <button class="action-btn" data-type="dislike" data-count="0">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(180 12 12)"><path d="M7 10v11M2 13v6a2 2 0 002 2h13.5a2 2 0 002-1.6l1.4-7A2 2 0 0018.5 10H14V5a2 2 0 00-2-2L9 10"/></svg>
+          <span class="action-count">0</span> Dislike
+        </button>
+        <a href="/post?id=4" class="action-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 01-9 8.5 8.79 8.79 0 01-4-1L3 20l1-4a8.38 8.38 0 01-1-4 8.5 8.5 0 018.5-8.5h.5A8.38 8.38 0 0121 11.5z"/></svg>
+          2 Comments
+        </a>
       </div>
     </article>
 
   </div>
 </main>
 
-<footer class="footer">
-  <div class="container">forum &middot; Zone01/01Edu project</div>
-</footer>
+<footer class="footer">forum &middot; Zone01/01Edu project</footer>
 
+<script src="/static/js/nav.js"></script>
+<script src="/static/js/reactions.js"></script>
 </body>
 </html>

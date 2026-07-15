@@ -1,0 +1,42 @@
+/* index.html only — the "what's on your mind" composer prompt and the
+   page header. Feed item styling itself lives in base.css since
+   category.html and profile.html reuse it. */
+
+.composer {
+  padding: 0.9rem 1.1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+.composer-prompt {
+  flex: 1;
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+  transition: background-color 0.15s ease;
+}
+.composer-prompt:hover { background: #E4E6E9; text-decoration: none; }
+
+.feed-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+.feed-toolbar h1 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  margin: 0;
+}
+.category-filter-row {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.9rem;
+  margin-bottom: 0.25rem;
+}
+.category-filter-row .tag { cursor: pointer; border: 1.5px solid transparent; }
+.category-filter-row .tag.active { border-color: currentColor; }
