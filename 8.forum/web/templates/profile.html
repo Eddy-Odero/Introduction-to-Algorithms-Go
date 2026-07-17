@@ -1,0 +1,29 @@
+{{define "content"}}
+<main class="container">
+  <div class="card" style="overflow:hidden;">
+    <div class="profile-cover"></div>
+    <div class="profile-header">
+      <div class="avatar avatar-lg {{.Avatar}} profile-avatar">{{.Initials}}</div>
+      <h1>{{.Username}}</h1>
+      <p class="handle">Kisumu, Kenya &middot; joined 2026</p>
+      <div class="profile-stats">
+        <span><strong>{{len .Posts}}</strong> post</span>
+        <span><strong>1</strong> liked post</span>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <a href="#mine-panel" class="tab">My posts</a>
+      <a href="#liked-panel" class="tab">Liked posts</a>
+    </div>
+  </div>
+
+  <div id="liked-panel" class="tab-panel feed" style="margin-top: 1rem;">
+    {{template "postcard" (index .Posts 0)}}
+  </div>
+
+  <div id="mine-panel" class="tab-panel feed" style="margin-top: 1rem;">
+    {{range .Posts}}{{template "postcard" .}}{{end}}
+  </div>
+</main>
+{{end}}

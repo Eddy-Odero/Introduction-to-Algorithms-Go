@@ -1,0 +1,41 @@
+{{define "content"}}
+<main class="container">
+  <form class="form-card wide card" action="/new-post" method="POST" enctype="multipart/form-data">
+    <h1>Create a post</h1>
+    <p class="subtitle">Share what you're building, ask for help, or start a discussion.</p>
+
+    {{if .Error}}<div class="form-error">{{.Error}}</div>{{end}}
+
+    <div class="field">
+      <label for="title">Title</label>
+      <input type="text" id="title" name="title" placeholder="What's this about?" required>
+    </div>
+
+    <div class="field">
+      <label for="body">Body</label>
+      <textarea id="body" name="body" placeholder="Write your post..." required></textarea>
+    </div>
+
+    <div class="field">
+      <label for="image">Image <span class="optional">(optional)</span></label>
+      <label class="image-drop" for="image">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+        <div>Click to add an image</div>
+        <input type="file" id="image" name="image" accept="image/*">
+      </label>
+    </div>
+
+    <div class="field">
+      <label>Categories</label>
+      <div class="tag-row">
+        <label class="chip"><input type="checkbox" name="category" value="general" checked> #general</label>
+        <label class="chip"><input type="checkbox" name="category" value="technology"> #technology</label>
+        <label class="chip"><input type="checkbox" name="category" value="gaming"> #gaming</label>
+        <label class="chip"><input type="checkbox" name="category" value="random"> #random</label>
+      </div>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Publish post</button>
+  </form>
+</main>
+{{end}}

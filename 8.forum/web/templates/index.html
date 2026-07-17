@@ -1,0 +1,38 @@
+{{define "content"}}
+<main class="container">
+
+  {{if .LoggedIn}}
+  <a href="/new-post" class="card composer">
+    <div class="avatar avatar-md {{.Avatar}}">{{.Initials}}</div>
+    <span class="composer-prompt">What's on your mind, {{.Username}}?</span>
+  </a>
+
+  <div class="category-filter-row">
+    <a href="/category?name=general" class="tag tag-general">#general</a>
+    <a href="/category?name=technology" class="tag tag-technology">#technology</a>
+    <a href="/category?name=gaming" class="tag tag-gaming">#gaming</a>
+    <a href="/category?name=random" class="tag tag-random">#random</a>
+  </div>
+  {{else}}
+  <div class="page-head">
+    <h1>What the community's talking about</h1>
+    <p>Browse freely. <a href="/register">Create an account</a> to post, comment, and react.</p>
+  </div>
+  {{end}}
+
+  <div class="feed">
+    {{range .Posts}}{{template "postcard" .}}{{end}}
+  </div>
+
+  {{if not .LoggedIn}}
+  <div class="join-banner">
+    <h2>Want to join the conversation?</h2>
+    <p>Log in or create a free account to post, comment, and react.</p>
+    <div class="join-banner-actions">
+      <a href="/register" class="btn btn-primary">Sign up</a>
+      <a href="/login" class="btn btn-ghost">Log in</a>
+    </div>
+  </div>
+  {{end}}
+</main>
+{{end}}

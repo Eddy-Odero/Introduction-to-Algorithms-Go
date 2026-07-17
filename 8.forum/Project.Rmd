@@ -1,275 +1,1165 @@
-# Forum Project — Personal Roadmap
+# Forum Project — Team Roadmap (4 Members)
 
-Build order: server → static frontend → database → auth → features → polish.
-Each phase ends with something you can actually run and test before moving on.
+This roadmap follows a **Server-Side Rendering (SSR)** architecture using Go's standard library and `html/template`. The browser receives fully rendered HTML pages from the Go server, while forms submit directly to the backend using standard HTTP requests.
 
-## Target file structure (grows phase by phase — see notes on each file)
+Unlike a Single Page Application (SPA), the application does **not** rely on JavaScript `fetch()` calls or JSON APIs for its core functionality. This approach aligns closely with the project requirements, emphasizing HTTP, sessions, cookies, SQLite, templates, and proper server-side error handling.
 
-```
+Development is organized into **9 phases**. Each phase is divided into **4 parallel tasks (A/B/C/D)** so every team member has clear ownership while minimizing merge conflicts.
+
+---
+
+# Development Order
+
+* Phase 1 — HTTP Server *(runs in parallel with Phase 2)*
+* Phase 2 — HTML Templates *(runs in parallel with Phase 1)*
+* Phase 3 — Database
+* Phase 4 — Authentication
+* Phase 5 — Posts
+* Phase 6 — Comments
+* Phase 7 — Likes & Dislikes
+* Phase 8 — Filters
+* Phase 9 — Testing, Docker & Final Polish
+
+From **Phase 3 onward**, each phase depends on the previous one.
+
+---
+
+# Target Project Structure
+
+```text
 forum/
 ├── go.mod
 ├── go.sum
 ├── Dockerfile
 ├── docker-compose.yml
 ├── README.md
+│
 ├── cmd/
 │   └── server/
-│       └── main.go                # Phase 1, extended every phase
+│       └── main.go
+│
 ├── internal/
 │   ├── router/
-│   │   └── router.go              # Phase 1
+│   │   └── router.go
+│   │
 │   ├── middleware/
-│   │   └── middleware.go          # Phase 1 (logging), Phase 4 (auth guard), Phase 9 (errors)
+│   │   └── middleware.go
+│   │
 │   ├── db/
-│   │   ├── db.go                  # Phase 3
-│   │   └── schema.sql             # Phase 3
-│   ├── models/
-│   │   ├── user.go                # Phase 3/4
-│   │   ├── category.go            # Phase 3
-│   │   ├── post.go                # Phase 5
-│   │   ├── comment.go             # Phase 6
-│   │   └── reaction.go            # Phase 7
+│   │   ├── db.go
+│   │   └── schema.sql
+│   │
 │   ├── auth/
-│   │   ├── password.go            # Phase 4
-│   │   ├── session.go             # Phase 4
-│   │   └── handlers.go            # Phase 4
-│   └── handlers/
-│       ├── posts.go               # Phase 5
-│       ├── comments.go            # Phase 6
-│       ├── reactions.go           # Phase 7
-│       └── filters.go             # Phase 8
+│   │   ├── password.go
+│   │   └── session.go
+│   │
+│   ├── handlers/
+│   │   ├── home.go
+│   │   ├── auth.go
+│   │   ├── posts.go
+│   │   ├── comments.go
+│   │   ├── reactions.go
+│   │   ├── filters.go
+│   │   └── errors.go
+│   │
+│   └── models/
+│       ├── user.go
+│       ├── category.go
+│       ├── post.go
+│       ├── comment.go
+│       └── reaction.go
+│
 ├── web/
-│   ├── static/
-│   │   ├── css/style.css          # Phase 2
-│   │   └── js/
-│   │       ├── main.js            # Phase 2 (nav/shared), Phase 5+ (fetch calls)
-│   │       ├── auth.js            # Phase 4
-│   │       ├── posts.js           # Phase 5
-│   │       ├── comments.js        # Phase 6
-│   │       └── reactions.js       # Phase 7
-│   └── pages/
-│       ├── index.html             # Phase 2
-│       ├── login.html             # Phase 2
-│       ├── register.html          # Phase 2
-│       ├── new-post.html          # Phase 2
-│       ├── post.html              # Phase 2
-│       ├── category.html          # Phase 2
-│       ├── profile.html           # Phase 2
-│       └── 404.html               # Phase 1
-└── (tests live alongside the code they test: internal/models/user_test.go, etc.)
+│   ├── templates/
+│   │   ├── base.html
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   ├── new-post.html
+│   │   ├── post.html
+│   │   ├── category.html
+│   │   ├── profile.html
+│   │   ├── 404.html
+│   │   └── 500.html
+│   │
+│   └── static/
+│       ├── css/
+│       │   └── style.css
+│       ├── js/
+│       │   └── main.js
+│       └── images/
+│
+└── tests/
 ```
 
 ---
 
-## Phase 1 — Static HTTP Server
+# Phase 1 — HTTP Server *(runs in parallel with Phase 2)*
 
-**Goal:** A Go server that serves static files and nothing else. No database, no
-dynamic content. Prove the plumbing works before building on it.
+## Goal
 
-**Build:**
-1. `go mod init forum`, set up the folder tree above (empty placeholder files
-   are fine for now).
-2. `cmd/server/main.go`: start an `http.Server` on `:8080`.
-3. `internal/router/router.go`: an `http.ServeMux` that:
-   - Serves everything under `/static/` from `web/static/` via `http.FileServer`.
-   - Serves `web/pages/index.html` at `/`.
-   - Falls back to a custom `web/pages/404.html` (with a real `404` status
-     code) for unmatched routes — don't let Go's default file-not-found page
-     leak through.
-4. `internal/middleware/middleware.go`: a logging middleware that wraps every
-   request — log method, path, status code, and duration. Wrap the whole mux
-   with it in `main.go`.
-5. Graceful shutdown: listen for `SIGINT`/`SIGTERM`, call `server.Shutdown(ctx)`.
-6. A one-line placeholder `index.html` and `404.html` so you have something
-   to load (real design happens in Phase 2).
+Create the application foundation.
 
-**Test before moving on:**
-- `go run ./cmd/server`, then `curl -i http://localhost:8080/` → `200`, HTML body.
-- `curl -i http://localhost:8080/nonsense` → `404`, your custom page, not Go's default.
-- Add a placeholder `web/static/css/style.css`, confirm
-  `curl -i http://localhost:8080/static/css/style.css` returns `200` with
-  `Content-Type: text/css`.
-- Check the log line appears for each request with correct status/duration.
+At the end of this phase:
 
----
+* Go server runs.
+* Static assets load.
+* Templates can be rendered.
+* Logging works.
+* Graceful shutdown works.
+* Custom 404 page works.
 
-## Phase 2 — Static Frontend Pages
+| Owner | Task                                                                                                                                               |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Create `cmd/server/main.go`. Configure the HTTP server, graceful shutdown (`SIGINT`, `SIGTERM`), and application startup.                          |
+| **B** | Create `internal/router/router.go`. Configure the router, register routes, serve static assets from `/static/`, and implement custom 404 handling. |
+| **C** | Create `internal/middleware/middleware.go`. Implement request logging middleware (method, path, status code, duration).                            |
+| **D** | Create the initial `Dockerfile` and `README.md` so everyone can build and run the application from day one.                                        |
 
-**Goal:** Every page of the forum exists as real HTML/CSS, navigable by
-clicking links, with no backend logic behind it yet. Use hardcoded/fake data
-so the pages look real. This is where you decide what data each page will
-eventually need — which directly informs the Phase 3 schema.
+### Initial Routes
 
-**Pages to build:**
-- `index.html` — feed of posts (title, author, category tags, like/dislike
-  counts, comment count) + nav bar (Login/Register if logged out, or
-  username/logout if logged in — fake both states to check the look).
-- `login.html`, `register.html` — forms, no submit logic yet.
-- `new-post.html` — title, body, category checkboxes/multi-select.
-- `post.html` — full post, comment list, comment form, like/dislike buttons.
-- `category.html` — same as feed but scoped to one category (subforum view).
-- `profile.html` — tabs or sections for "My posts" and "My liked posts".
-- Shared `nav` and `footer` markup, shared `style.css`.
+```text
+GET /
+GET /login
+GET /register
+GET /new-post
+GET /profile
+```
 
-**Test before moving on:**
-- Click through every page from the nav — no dead links.
-- Resize the browser — nothing breaks at mobile width.
-- Get a friend (or just yourself, fresh eyes) to look at it without
-  explanation — can they tell what each button does?
+These routes may render placeholder templates until later phases.
 
-**Why this before the database:** once these pages exist, the exact fields
-each entity needs (does a post need a summary field? do comments need
-threading?) are obvious from the HTML instead of guessed at.
+### Test Before Merge
+
+* `go run ./cmd/server`
+* `/` returns HTTP 200.
+* Unknown routes return custom HTTP 404.
+* Static CSS loads correctly.
+* Logging displays request details.
+* Server shuts down cleanly.
 
 ---
 
-## Phase 3 — Database Schema & Connection Layer
+# Phase 2 — HTML Templates *(runs in parallel with Phase 1)*
 
-**Goal:** Now that the UI is real, design the schema to match it exactly.
+## Goal
 
-**Build:**
-1. Sketch the ERD (users, sessions, categories, posts, post_categories,
-   comments, reactions) based on what Phase 2's pages actually display.
-2. `internal/db/schema.sql`: `CREATE TABLE IF NOT EXISTS` for each entity,
-   foreign keys, a unique index so a user can't react twice to the same
-   post/comment.
-3. `internal/db/db.go`: open SQLite with `_foreign_keys=on`,
-   `_journal_mode=WAL`, `_busy_timeout=5000`; run the schema on startup
-   (idempotent, safe every time).
-4. `internal/models/user.go` + `category.go`: minimal repository methods —
-   at least one `INSERT`, one `SELECT`. Seed the categories your Phase 2
-   pages reference.
+Build every page of the forum using Go templates.
 
-**Test before moving on:**
-- Run the server, inspect the `.db` file with the `sqlite3` CLI — all tables
-  exist, categories seeded.
-- Write a temporary throwaway route (delete it after) that inserts and
-  selects a user, confirm both work and duplicates are rejected.
+At this stage the pages still use placeholder data.
 
----
+Create a shared template layout using:
 
-## Phase 4 — Authentication
+* `base.html`
+* reusable navigation
+* reusable footer
 
-**Goal:** Real registration and login, wired to the Phase 2 forms.
+Every page should inherit the common layout.
 
-**Build:**
-1. `internal/auth/password.go`: bcrypt hash/compare wrappers.
-2. `internal/models/user.go`: extend with whatever queries auth needs.
-3. `internal/auth/session.go`: UUID session IDs, `sessions` table insert,
-   expiry (pick a duration — e.g. 24h), cookie set/clear helpers.
-4. `internal/auth/handlers.go`: `POST /api/register`, `POST /api/login`,
-   `POST /api/logout`. Register checks for duplicate email (`409`), login
-   checks password with bcrypt (`401` on mismatch), both set the session
-   cookie on success.
-5. `internal/middleware/middleware.go`: an auth-guard middleware that
-   reads the cookie, validates the session isn't expired, and attaches the
-   user to the request context (or rejects with `401`).
-6. Wire `login.html`/`register.html` forms to these endpoints via
-   `web/static/js/auth.js` (fetch + display errors inline, no `alert()`).
-7. Nav bar in `main.js` reflects real logged-in/out state.
+| Owner | Task                                                                                                                                                                                |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Build `base.html`, shared navigation, footer, global `style.css`, and `index.html`. Create placeholder post cards showing title, author, categories, likes, dislikes, and comments. |
+| **B** | Build `login.html` and `register.html`. Create complete HTML forms using standard `<form>` elements (no JavaScript). Reserve template blocks for validation errors.                 |
+| **C** | Build `new-post.html` and `post.html`. Include post form, category selection, comment section, and like/dislike forms using placeholder data.                                       |
+| **D** | Build `category.html` and `profile.html`. Profile should include "My Posts" and "Liked Posts" sections using mock data.                                                             |
 
-**Test before moving on:**
-- Register a new user → succeeds, cookie set. Register same email again → `409`.
-- Login with wrong password → `401`. Login correctly → cookie set, nav updates.
-- Manually expire/delete a session row, confirm the guarded route rejects it.
-- Logout clears the cookie and the nav reverts.
+### Template Goals
 
----
+Prepare templates for future dynamic data using Go template syntax such as:
 
-## Phase 5 — Posts & Categories
+* `{{.User}}`
+* `{{range .Posts}}`
+* `{{if .LoggedIn}}`
 
-**Goal:** Registered users can create posts with categories; everyone can
-read the feed.
+Only placeholder data is required during this phase.
 
-**Build:**
-1. `internal/models/post.go`: create post (+ insert into `post_categories`),
-   list posts (feed), get single post by ID — with category names joined in.
-2. `internal/handlers/posts.go`: `POST /api/posts` (auth required),
-   `GET /api/posts` (public), `GET /api/posts/{id}` (public).
-3. Wire `new-post.html` to submit via `posts.js`; wire `index.html` and
-   `post.html` to fetch and render real data instead of hardcoded HTML.
+### Test Before Merge
 
-**Test before moving on:**
-- Create a post as a logged-in user with 2 categories → appears in feed
-  with both category tags.
-- Try creating a post while logged out → `401`, form shows the error.
-- View a single post directly by URL/ID → correct content.
+* Every page renders.
+* Navigation works.
+* Responsive layout.
+* Consistent styling.
+* No broken links.
+
+### Team Review
+
+Before starting Phase 3, review every page together.
+
+Decide:
+
+* What information belongs to a post?
+* What information belongs to a comment?
+* Which categories should exist?
+* Which statistics should appear on every page?
+
+These decisions determine the database schema.
 
 ---
 
-## Phase 6 — Comments
+# Phase 3 — SQLite Database
 
-**Build:**
-1. `internal/models/comment.go`: create, list-by-post.
-2. `internal/handlers/comments.go`: `POST /api/posts/{id}/comments` (auth
-   required), `GET /api/posts/{id}/comments` (public).
-3. Wire `post.html` comment section to `comments.js`.
+## Goal
 
-**Test before moving on:**
-- Add a comment as a logged-in user → appears immediately.
-- Guest sees existing comments, no comment form (or a disabled one with a
-  "log in to comment" prompt).
-- Comment count on `index.html` feed matches the post's actual comment count.
+Create the persistent data layer.
+
+The database must support:
+
+* Users
+* Sessions
+* Categories
+* Posts
+* Comments
+* Reactions
+
+### Suggested Tables
+
+* users
+* sessions
+* posts
+* categories
+* post_categories
+* comments
+* reactions
+
+| Owner | Task                                                                                                                                                      |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Design the ERD and create `internal/db/schema.sql`. Define tables, foreign keys, indexes, and unique constraints.                                         |
+| **B** | Create `internal/db/db.go`. Configure SQLite (`foreign_keys=ON`, WAL mode, busy timeout), initialize the database, and execute migrations automatically.  |
+| **C** | Create `internal/models/category.go`. Seed the default forum categories and implement repository methods for retrieving categories.                       |
+| **D** | Create `internal/models/user.go`. Implement user creation, lookup by email, lookup by username, and basic repository methods required for authentication. |
+
+### Test Before Merge
+
+* Database file is created.
+* Tables exist.
+* Categories are seeded.
+* User insertion works.
+* Duplicate email is rejected.
+* Foreign keys are enforced.
+
+### Team Review
+
+Before Phase 4, verify that the schema supports:
+
+* multiple categories per post
+* comments
+* likes/dislikes
+* sessions
+* user ownership
+* future filtering without major schema changes
+# Phase 4 — Authentication
+
+## Goal
+
+Implement complete user authentication using server-side sessions and cookies.
+
+The authentication system must support:
+
+* User registration.
+* User login.
+* User logout.
+* Session creation.
+* Session expiration.
+* Protected routes.
+* Password encryption using bcrypt.
+
+All authentication is handled by Go. No JavaScript authentication requests are used.
+
+The browser submits normal HTML forms:
+
+```html
+<form action="/login" method="POST">
+```
+
+The server validates the request, updates the database, sets cookies, and redirects the user.
 
 ---
 
-## Phase 7 — Likes & Dislikes
+## Authentication Flow
 
-**Build:**
-1. `internal/models/reaction.go`: upsert-style toggle (like → dislike →
-   remove), enforced by the unique index from Phase 3.
-2. `internal/handlers/reactions.go`: `POST /api/posts/{id}/react`,
-   `POST /api/comments/{id}/react` (both auth required; body `{type: "like"|"dislike"}`).
-3. Wire like/dislike buttons in `reactions.js` — counts update without a
-   full page reload.
+### Registration
 
-**Test before moving on:**
-- Like a post → count goes up, button shows active state.
-- Click dislike while like is active → like count drops, dislike count
-  rises (not both counted).
-- Click the same button again → reaction removed, count reverts.
-- Guest clicking like/dislike → `401`, prompted to log in.
-- Refresh the page → reaction state and counts persist correctly.
+```text
+User fills register form
 
----
+        ↓
 
-## Phase 8 — Filters
+POST /register
 
-**Build:**
-1. `internal/handlers/filters.go` (or extend `posts.go`):
-   `GET /api/posts?category={id}` (public), `GET /api/posts?mine=true`
-   (auth required — posts by logged-in user), `GET /api/posts?liked=true`
-   (auth required — posts the logged-in user has liked).
-2. Wire `category.html` to the category filter; wire `profile.html` tabs to
-   the "mine" and "liked" filters.
+        ↓
 
-**Test before moving on:**
-- Category filter returns only posts in that category.
-- "My posts" as guest → `401` or redirect to login, not a silent empty list.
-- "My posts"/"My liked posts" as a logged-in user → correct, user-scoped
-  results only (verify with two different test accounts).
+Validate input
+
+        ↓
+
+Check email exists
+
+        ↓
+
+Hash password
+
+        ↓
+
+Save user
+
+        ↓
+
+Redirect to login
+```
 
 ---
 
-## Phase 9 — Error Handling, Tests, Docker, Deploy
+### Login
 
-**Build:**
-1. Consistent HTTP status codes across every handler (400 bad input, 401
-   unauthenticated, 403 forbidden, 404 not found, 405 method not allowed,
-   500 unexpected) — audit every handler written so far against this list.
-2. Custom error pages/JSON error bodies (be consistent — pick JSON errors
-   for `/api/*`, HTML pages for direct navigation).
-3. Unit tests: at minimum `internal/models/*_test.go` (repository logic)
-   and `internal/auth/*_test.go` (password hashing, session expiry logic).
-4. `Dockerfile` (multi-stage; cgo stays enabled for `go-sqlite3` — don't use
-   a scratch/distroless final image, use `debian-slim` + `libsqlite3-0`).
-5. `docker-compose.yml` with a named volume for the SQLite file.
-6. Final README: setup, run, env vars, architecture summary.
+```text
+User submits login form
 
-**Test before calling it done:**
-- `go test ./...` passes.
-- `docker build` succeeds, `docker run` serves the full app, data survives
-  a container restart (volume works).
-- Manually hit every error case (double-submit register, bad login,
-  unauthenticated post creation, nonexistent post ID, wrong HTTP method on
-  an endpoint) and confirm the status code + message are sane.
+        ↓
+
+POST /login
+
+        ↓
+
+Check credentials
+
+        ↓
+
+Create session
+
+        ↓
+
+Set cookie
+
+        ↓
+
+Redirect to homepage
+```
+
+---
+
+## Routes
+
+```text
+GET  /register
+POST /register
+
+GET  /login
+POST /login
+
+POST /logout
+```
+
+---
+
+| Owner | Task                                                                                                                                                                                                                                           |
+| ----- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Implement `internal/auth/password.go`. Add bcrypt password hashing and password comparison helpers. Extend `internal/models/user.go` with authentication-related queries. Implement registration handler logic in `internal/handlers/auth.go`. |
+| **B** | Implement `internal/auth/session.go`. Create session management using UUID session IDs, expiration dates, secure cookies, and session database storage. Implement login/logout handlers.                                                       |
+| **C** | Extend `internal/middleware/middleware.go`. Create authentication middleware that reads the session cookie, validates it, loads the current user, and attaches user data to the request context. Protect routes requiring authentication.      |
+| **D** | Update templates (`login.html`, `register.html`, navigation). Add server-rendered validation messages, logged-in username display, and logout links.                                                                                           |
+
+---
+
+## Template Changes
+
+Navigation should dynamically display:
+
+When logged out:
+
+```text
+Login
+Register
+```
+
+When logged in:
+
+```text
+Username
+Profile
+Logout
+```
+
+Templates should support server-side messages:
+
+```html
+{{if .Error}}
+<div class="error">
+    {{.Error}}
+</div>
+{{end}}
+```
+
+---
+
+## Test Before Merge
+
+* Register a new account successfully.
+* Register with an existing email returns an error.
+* Login with incorrect password returns an error.
+* Login creates a session cookie.
+* Protected pages reject unauthenticated users.
+* Logout removes the session.
+* Expired sessions are rejected.
+
+---
+
+# Phase 5 — Posts & Categories
+
+## Goal
+
+Allow users to create posts with categories while allowing everyone to view posts.
+
+Requirements covered:
+
+* Registered users can create posts.
+* Posts can have multiple categories.
+* Guests can view posts.
+* Categories are displayed with posts.
+* Posts belong to their creator.
+
+No API endpoints are used. All pages are rendered by Go templates.
+
+---
+
+## Post Creation Flow
+
+```text
+User opens new post page
+
+        ↓
+
+GET /new-post
+
+        ↓
+
+Fill form
+
+        ↓
+
+POST /new-post
+
+        ↓
+
+Validate session
+
+        ↓
+
+Save post
+
+        ↓
+
+Attach categories
+
+        ↓
+
+Redirect to post page
+```
+
+---
+
+## Routes
+
+```text
+GET  /
+GET  /post?id={id}
+
+GET  /new-post
+POST /new-post
+```
+
+---
+
+| Owner | Task                                                                                                                                                                                      |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Implement `internal/models/post.go`. Create post creation queries, post retrieval, category relationships, and feed queries.                                                              |
+| **B** | Implement post handlers in `internal/handlers/posts.go`. Create homepage rendering, post detail rendering, and post creation processing.                                                  |
+| **C** | Update templates. Implement dynamic post rendering using Go templates: `index.html`, `post.html`, and `new-post.html`. Add template loops for posts, categories, comments, and reactions. |
+| **D** | Implement validation and integration testing. Verify ownership checks, category assignment, empty input handling, and correct redirect behaviour after post creation.                     |
+
+---
+
+## Database Operations
+
+Post creation requires:
+
+1. Insert post.
+
+Example:
+
+```sql
+INSERT INTO posts (...)
+VALUES (...);
+```
+
+2. Insert category relationships.
+
+Example:
+
+```sql
+INSERT INTO post_categories (...)
+VALUES (...);
+```
+
+3. Retrieve posts with category information.
+
+Example:
+
+```sql
+SELECT posts.*, categories.name
+FROM posts
+JOIN post_categories
+ON posts.id = post_categories.post_id;
+```
+
+---
+
+## Template Example
+
+Posts are rendered server-side:
+
+```html
+{{range .Posts}}
+
+<article>
+
+<h2>{{.Title}}</h2>
+
+<p>
+Created by {{.Username}}
+</p>
+
+{{range .Categories}}
+<span>
+{{.Name}}
+</span>
+{{end}}
+
+</article>
+
+{{end}}
+```
+
+---
+
+## Test Before Merge
+
+* Guest users can view posts.
+* Logged-in users can create posts.
+* Logged-out users cannot create posts.
+* A post can contain multiple categories.
+* Post detail pages display correct information.
+* Homepage shows latest posts.
+
+---
+
+# Phase 6 — Comments
+
+## Goal
+
+Implement communication between users through comments.
+
+Requirements covered:
+
+* Registered users can comment.
+* Guests can read comments.
+* Comments belong to posts.
+* Comment counts are displayed.
+
+---
+
+## Comment Flow
+
+```text
+User opens post page
+
+        ↓
+
+Reads comments
+
+        ↓
+
+Submits comment form
+
+        ↓
+
+POST /comment
+
+        ↓
+
+Validate session
+
+        ↓
+
+Save comment
+
+        ↓
+
+Redirect back to post
+```
+
+---
+
+## Routes
+
+```text
+GET  /post?id={id}
+
+POST /comment
+```
+
+---
+
+| Owner | Task                                                                                                                                         |
+| ----- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Implement `internal/models/comment.go`. Add create comment, list comments by post, and comment count queries.                                |
+| **B** | Implement `internal/handlers/comments.go`. Handle comment submissions, authentication checks, validation, and redirects.                     |
+| **C** | Update `post.html` template. Add server-rendered comment list and comment submission form. Display login message when guests cannot comment. |
+| **D** | Integration testing. Verify comment ownership, comment counts, permissions, empty comment handling, and display consistency across pages.    |
+
+---
+
+## Template Behaviour
+
+Logged-in user:
+
+```html
+<form action="/comment" method="POST">
+
+<textarea name="content"></textarea>
+
+<button>
+Comment
+</button>
+
+</form>
+```
+
+Guest:
+
+```html
+<p>
+Login to comment
+</p>
+```
+
+---
+
+## Test Before Merge
+
+* Registered users can add comments.
+* Guests can view comments.
+* Guests cannot submit comments.
+* New comments appear after redirect.
+* Comment counts match database values.
+* Invalid empty comments are rejected.
+
+---
+
+# Phase 6 Completion Check
+
+At this point the forum should support:
+
+ User registration
+ User login
+ User sessions
+ User logout
+ Creating posts
+ Assigning categories
+ Viewing posts
+ Creating comments
+ Viewing comments
+
+The remaining phases will add:
+
+* Likes/dislikes.
+* Filtering.
+* Error handling.
+* Testing.
+* Docker deployment.
+# Phase 7 — Likes & Dislikes
+
+## Goal
+
+Implement reactions on posts and comments.
+
+Requirements covered:
+
+* Registered users can like posts.
+* Registered users can dislike posts.
+* Registered users can like comments.
+* Registered users can dislike comments.
+* Guests can view reaction counts.
+* Each user can have only one reaction per post/comment.
+* Reaction state persists after refresh.
+
+The implementation uses normal HTML forms and server-side processing.
+
+No JavaScript updates are required.
+
+---
+
+## Reaction Flow
+
+```text
+User clicks like/dislike
+
+        ↓
+
+POST /reaction
+
+        ↓
+
+Check authentication
+
+        ↓
+
+Check existing reaction
+
+        ↓
+
+Create/update/remove reaction
+
+        ↓
+
+Redirect back
+
+        ↓
+
+Page reloads with updated count
+```
+
+---
+
+## Routes
+
+```text
+POST /reaction
+```
+
+The request contains:
+
+* target type (post/comment)
+* target ID
+* reaction type (like/dislike)
+
+Example form:
+
+```html
+<form action="/reaction" method="POST">
+
+<input type="hidden" name="post_id" value="10">
+
+<button name="type" value="like">
+Like
+</button>
+
+<button name="type" value="dislike">
+Dislike
+</button>
+
+</form>
+```
+
+---
+
+| Owner | Task                                                                                                                                                        |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Implement `internal/models/reaction.go`. Create reaction queries, unique constraints, insert/update/remove logic, and count queries for likes and dislikes. |
+| **B** | Implement `internal/handlers/reactions.go`. Handle reaction submissions, authentication checks, validation, and redirects back to the previous page.        |
+| **C** | Update templates (`post.html`, comment sections, feed cards). Add like/dislike forms and display reaction counts using template variables.                  |
+| **D** | Integration testing. Verify reactions from multiple users, reaction switching, persistence after refresh, and visibility for guests.                        |
+
+---
+
+## Database Logic
+
+A user should not be able to create duplicate reactions.
+
+The database should enforce this:
+
+```sql
+UNIQUE(user_id, post_id)
+```
+
+or
+
+```sql
+UNIQUE(user_id, comment_id)
+```
+
+---
+
+## Reaction Behaviour
+
+Example:
+
+User likes a post:
+
+```text
+Like count +1
+```
+
+User changes to dislike:
+
+```text
+Like count -1
+Dislike count +1
+```
+
+User removes reaction:
+
+```text
+Dislike count -1
+```
+
+---
+
+## Test Before Merge
+
+* Logged-in user can like posts.
+* Logged-in user can dislike posts.
+* Logged-in user can react to comments.
+* A user cannot have both like and dislike active.
+* Clicking the same reaction removes it.
+* Guest users cannot react.
+* Counts remain correct after page refresh.
+* Different users have independent reactions.
+
+---
+
+# Phase 8 — Filters
+
+## Goal
+
+Implement server-side filtering of forum content.
+
+Requirements covered:
+
+Users must be able to filter posts by:
+
+* Categories.
+* Their own created posts.
+* Posts they liked.
+
+The last two options require authentication.
+
+All filtering happens in Go before templates are rendered.
+
+---
+
+## Filter Flow
+
+```text
+User clicks filter link
+
+        ↓
+
+GET request with query parameter
+
+        ↓
+
+Handler reads filter
+
+        ↓
+
+Database query executes
+
+        ↓
+
+Template renders filtered posts
+```
+
+---
+
+## Routes
+
+Category filter:
+
+```text
+GET /?category={id}
+```
+
+User posts:
+
+```text
+GET /profile?filter=mine
+```
+
+Liked posts:
+
+```text
+GET /profile?filter=liked
+```
+
+---
+
+| Owner | Task                                                                                                                                                |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Implement category filtering queries in `internal/models/post.go` or `internal/handlers/filters.go`. Return posts belonging to selected categories. |
+| **B** | Implement "My Posts" filtering. Retrieve only posts created by the currently logged-in user. Add authentication checks.                             |
+| **C** | Implement "Liked Posts" filtering. Query reactions table and return posts liked by the current user.                                                |
+| **D** | Update templates and navigation. Add category links, profile filtering links, and server-rendered filtered views.                                   |
+
+---
+
+## Template Examples
+
+Category navigation:
+
+```html
+<a href="/?category=1">
+Technology
+</a>
+```
+
+Profile filters:
+
+```html
+<a href="/profile?filter=mine">
+My Posts
+</a>
+
+<a href="/profile?filter=liked">
+Liked Posts
+</a>
+```
+
+---
+
+## Test Before Merge
+
+* Category filter only displays matching posts.
+* Guest users cannot access personal filters.
+* "My Posts" only shows the current user's posts.
+* "Liked Posts" only shows posts liked by the current user.
+* Two different accounts cannot see each other's private filters.
+
+---
+
+# Phase 9 — Error Handling, Testing, Docker & Final Polish
+
+## Goal
+
+Prepare the project for final submission.
+
+This phase ensures:
+
+* Correct HTTP behaviour.
+* Stable deployment.
+* Good code quality.
+* Automated tests.
+* Docker compatibility.
+
+---
+
+# HTTP Error Handling
+
+All handlers must correctly handle:
+
+| Status | Usage                                     |
+| ------ | ----------------------------------------- |
+| 200    | Successful request                        |
+| 302    | Redirect after successful form submission |
+| 400    | Invalid user input                        |
+| 401    | Not authenticated                         |
+| 403    | Forbidden action                          |
+| 404    | Resource not found                        |
+| 405    | Wrong HTTP method                         |
+| 500    | Internal server error                     |
+
+---
+
+## Error Pages
+
+Create:
+
+```text
+web/templates/
+
+404.html
+500.html
+```
+
+Example:
+
+Request:
+
+```text
+GET /post?id=999
+```
+
+If the post does not exist:
+
+```text
+HTTP/1.1 404 Not Found
+```
+
+Render:
+
+```text
+Post not found
+```
+
+---
+
+| Owner | Task                                                                                                                                                                            |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **A** | Audit every handler. Verify correct HTTP status codes, validation errors, missing resources, forbidden actions, and unexpected errors. Implement shared error handling helpers. |
+| **B** | Create unit tests. Test models, database operations, password hashing, sessions, and authentication logic.                                                                      |
+| **C** | Complete Docker setup. Create production Dockerfile, docker-compose configuration, SQLite volume persistence, and verify container builds.                                      |
+| **D** | Complete README documentation and perform final manual QA across the entire application. Test every feature and every error case.                                               |
+
+---
+
+# Testing Requirements
+
+## Automated Tests
+
+Run:
+
+```bash
+go test ./...
+```
+
+Tests should cover:
+
+### Models
+
+* User creation.
+* User lookup.
+* Post creation.
+* Category relationships.
+* Comment creation.
+* Reaction handling.
+
+### Authentication
+
+* Password hashing.
+* Password comparison.
+* Session creation.
+* Session expiration.
+
+---
+
+# Docker Requirements
+
+The final application must run inside Docker.
+
+Required:
+
+* Multi-stage Docker build.
+* SQLite database persistence.
+* Application starts automatically.
+* Data survives container restart.
+
+Example:
+
+```bash
+docker compose up
+```
+
+---
+
+# Final Manual QA Checklist
+
+## Authentication
+
+* [ ] Register works.
+* [ ] Duplicate email rejected.
+* [ ] Login works.
+* [ ] Wrong password rejected.
+* [ ] Logout works.
+* [ ] Session expiration works.
+
+## Posts
+
+* [ ] Users can create posts.
+* [ ] Guests can view posts.
+* [ ] Categories display correctly.
+
+## Comments
+
+* [ ] Users can comment.
+* [ ] Guests can view comments.
+* [ ] Comment counts are correct.
+
+## Reactions
+
+* [ ] Likes work.
+* [ ] Dislikes work.
+* [ ] Switching reactions works.
+* [ ] Counts persist.
+
+## Filters
+
+* [ ] Category filtering works.
+* [ ] My posts filter works.
+* [ ] Liked posts filter works.
+
+## Technical
+
+* [ ] HTTP status codes are correct.
+* [ ] Errors have proper pages.
+* [ ] Docker works.
+* [ ] Database persists.
+* [ ] Tests pass.
+
+---
+
+# Final Project Architecture
+
+The completed application follows:
+
+```text
+Browser
+   |
+   | HTTP Request
+   |
+Go Router
+   |
+Middleware
+   |
+Handlers
+   |
+Models
+   |
+SQLite Database
+   |
+Templates
+   |
+Rendered HTML
+   |
+Browser
+```
+
+The final project demonstrates:
+
+* HTML
+* HTTP
+* Cookies
+* Sessions
+* SQLite
+* SQL queries
+* Authentication
+* Encryption
+* Docker
+* Server-side rendering
+* Good Go practices
+
+---
+
+# Completion Criteria
+
+The forum is complete when:
+
+ Users can register and login
+ Sessions use cookies
+ Passwords are encrypted
+ Users can create posts
+ Posts have categories
+ Users can comment
+ Users can like/dislike posts and comments
+ Users can filter posts
+ SQLite stores all data
+ HTTP errors are handled correctly
+ Docker deployment works
+ Tests pass

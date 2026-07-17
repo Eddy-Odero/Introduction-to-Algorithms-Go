@@ -39,7 +39,20 @@
   padding: 0.6rem 0.9rem;
   cursor: pointer;
   border-bottom: 2px solid transparent;
+  text-decoration: none;
+  display: inline-block;
   transition: color 0.15s ease, border-color 0.15s ease;
 }
 .tab:hover { color: var(--ink-soft); }
 .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+/* CSS-only tab switching: "My posts" shows by default; clicking "Liked
+   posts" jumps to #liked-panel, whose :target state hides mine-panel via
+   the general sibling combinator. No JS. One known limitation of this
+   pure-CSS approach: the .tab link itself can't be highlighted to reflect
+   which panel is active, since CSS sibling selectors only reach forward,
+   and the tabs sit before the panels in the DOM. */
+.tab-panel { display: none; }
+#mine-panel { display: block; }
+#liked-panel:target { display: block; }
+#liked-panel:target ~ #mine-panel { display: none; }

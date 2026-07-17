@@ -1,0 +1,77 @@
+{{define "base"}}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{.Title}}</title>
+<link rel="stylesheet" href="/static/css/base.css">
+{{if .PageCSS}}<link rel="stylesheet" href="/static/css/{{.PageCSS}}">{{end}}
+</head>
+<body>
+
+{{if .Minimal}}
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">f</span>forum</a>
+    <div class="nav-links">
+      <a href="/login" class="nav-link-plain">Log in</a>
+      <a href="/register" class="nav-cta">Sign up</a>
+    </div>
+  </div>
+</nav>
+
+{{else if .LoggedIn}}
+<nav class="nav">
+  <input type="checkbox" id="nav-toggle" class="nav-toggle-checkbox">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">f</span>forum</a>
+    <div class="nav-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" name="q" placeholder="Search">
+    </div>
+    <div class="nav-links">
+      <a href="/" class="nav-icon-link{{if eq .Active "feed"}} current{{end}}" title="Feed" aria-label="Feed">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10a1 1 0 001 1h4v-6h4v6h4a1 1 0 001-1V10"/></svg>
+      </a>
+      <a href="/new-post" class="nav-icon-link{{if eq .Active "new-post"}} current{{end}}" title="New post" aria-label="New post">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      </a>
+      <a href="/profile" class="nav-icon-link{{if eq .Active "profile"}} current{{end}}" title="Profile" aria-label="Profile">
+        <div class="avatar avatar-sm {{.Avatar}}">{{.Initials}}</div>
+      </a>
+      <a href="/logout" class="nav-link-plain">Log out</a>
+      <label for="nav-toggle" class="nav-burger" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+      </label>
+    </div>
+  </div>
+  <div class="nav-mobile-panel">
+    <a href="/"{{if eq .Active "feed"}} class="current"{{end}}>Feed</a>
+    <a href="/category?name=technology">#technology</a>
+    <a href="/category?name=general">#general</a>
+    <a href="/new-post"{{if eq .Active "new-post"}} class="current"{{end}}>New post</a>
+    <a href="/profile"{{if eq .Active "profile"}} class="current"{{end}}>Profile</a>
+    <a href="/logout">Log out</a>
+  </div>
+</nav>
+
+{{else}}
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="/" class="brand"><span class="brand-mark">f</span>forum</a>
+    <div class="nav-links">
+      <span class="welcome-text">Welcome — browsing as a guest</span>
+      <a href="/login" class="nav-link-plain">Log in</a>
+      <a href="/register" class="nav-cta">Sign up</a>
+    </div>
+  </div>
+</nav>
+{{end}}
+
+{{template "content" .}}
+
+<footer class="footer">forum &middot; Zone01/01Edu project</footer>
+</body>
+</html>
+{{end}}

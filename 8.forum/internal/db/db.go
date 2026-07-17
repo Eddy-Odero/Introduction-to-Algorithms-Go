@@ -1,6 +1,6 @@
 // Package db owns the single *sql.DB handle for the forum and knows how
 // to initialize the schema. Every other package gets its connection by
-// calling db.Open, not by importing sqlite3 directly.
+// calling db.Open, not by importing the sqlite driver directly.
 package db
 
 import (
@@ -8,7 +8,7 @@ import (
 	"embed"
 	"fmt"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "modernc.org/sqlite" // pure-Go SQLite driver — no C compiler/cgo required
 )
 
 //go:embed schema.sql
@@ -18,14 +18,23 @@ var schemaFS embed.FS
 // matter for a web server workload, runs the schema, and returns the
 // handle.
 func Open(path string) (*sql.DB, error) {
-	// _foreign_keys=on   -> enforce FK constraints (off by default in SQLite)
-	// _journal_mode=WAL  -> readers don't block writers under concurrent
-	//                       requests
-	// _busy_timeout=5000 -> wait up to 5s on a locked DB instead of failing
-	//                       immediately with "database is locked"
-	dsn := fmt.Sprintf("file:%s?_foreign_keys=on&_journal_mode=WAL&_busy_timeout=5000", path)
+	// modernc.org/sqlite takes pragmas as repeated _pragma=name(value)
+	// query params (applied once per new connection), rather than the
+	// mattn/go-sqlite3 style of a single query string like
+	// "?_foreign_keys=on&_journal_mode=WAL".
+	//
+	// foreign_keys(1)     -> enforce FK constraints (off by default in SQLite)
+	// journal_mode(WAL)   -> readers don't block writers under concurrent
+	//                        requests
+	// busy_timeout(5000)  -> wait up to 5s on a locked DB instead of failing
+	//                        immediately with "database is locked"
+	dsn := fmt.Sprintf(
+		"file:%s?_pragma=foreign_keys(1)&_pragma=journal_mode(WAL)&_pragma=busy_timeout(5000)",
+		path,
+	)
 
-	conn, err := sql.Open("sqlite3", dsn)
+	// The driver name is "sqlite" (not "sqlite3") for modernc.org/sqlite.
+	conn, err := sql.Open("sqlite", dsn)
 	if err != nil {
 		return nil, fmt.Errorf("db: open %s: %w", path, err)
 	}

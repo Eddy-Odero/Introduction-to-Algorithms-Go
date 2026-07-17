@@ -76,3 +76,17 @@
 
 .comment-form { display: flex; gap: 0.6rem; margin-top: 1rem; align-items: flex-start; }
 .comment-form textarea { min-height: 44px; }
+
+.comment-actions-readonly {
+  margin-top: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--ink-faint);
+}
+.login-to-comment {
+  text-align: center;
+  padding: 1rem;
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0;
+}
+.action-btn.compact { flex: none; padding: 0.2rem 0.5rem; font-size: 0.78rem; }

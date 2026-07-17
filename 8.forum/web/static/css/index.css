@@ -1,6 +1,41 @@
-/* index.html only — the "what's on your mind" composer prompt and the
-   page header. Feed item styling itself lives in base.css since
-   category.html and profile.html reuse it. */
+/* index.html only. This one page renders two different experiences from
+   the same template depending on .LoggedIn: guest (read-only feed + join
+   banner) or logged-in (composer + category filter row). Both sets of
+   rules live here since they belong to the same page. */
+
+.welcome-text {
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  margin-right: 0.5rem;
+  display: none;
+}
+@media (min-width: 560px) {
+  .welcome-text { display: inline; }
+}
+
+.page-head { padding: 1.75rem 0 1.25rem; }
+.page-head h1 {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  margin: 0 0 0.35rem;
+}
+.page-head p { color: var(--ink-soft); margin: 0; font-size: 0.95rem; }
+
+.join-banner {
+  text-align: center;
+  padding: 2.5rem 1.5rem;
+  margin: 1.5rem 0;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+.join-banner h2 {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  margin: 0 0 0.4rem;
+}
+.join-banner p { color: var(--ink-soft); margin: 0 0 1.1rem; font-size: 0.92rem; }
+.join-banner-actions { display: flex; gap: 0.7rem; justify-content: center; }
 
 .composer {
   padding: 0.9rem 1.1rem;
@@ -20,17 +55,6 @@
 }
 .composer-prompt:hover { background: #E4E6E9; text-decoration: none; }
 
-.feed-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 0.75rem;
-}
-.feed-toolbar h1 {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  margin: 0;
-}
 .category-filter-row {
   display: flex;
   gap: 0.4rem;
@@ -39,4 +63,4 @@
   margin-bottom: 0.25rem;
 }
 .category-filter-row .tag { cursor: pointer; border: 1.5px solid transparent; }
-.category-filter-row .tag.active { border-color: currentColor; }
+.category-filter-row .tag:hover { text-decoration: none; opacity: 0.85; }

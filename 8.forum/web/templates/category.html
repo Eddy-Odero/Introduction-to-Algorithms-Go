@@ -1,0 +1,13 @@
+{{define "content"}}
+<main class="container">
+  <div class="category-hero hero-{{.CategoryName}}">
+    <span class="eyebrow">subforum</span>
+    <h1>#{{.CategoryName}}</h1>
+    <p>Posts tagged {{.CategoryName}}, newest first.</p>
+  </div>
+
+  <div class="feed">
+    {{range .Posts}}{{template "postcard" .}}{{end}}
+  </div>
+</main>
+{{end}}

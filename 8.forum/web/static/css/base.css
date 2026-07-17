@@ -112,28 +112,30 @@ img { max-width: 100%; display: block; }
 }
 
 .nav-search {
-  flex: 1;
-  max-width: 320px;
+  flex: 0 1 220px;
+  height: 40px;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.45rem;
   background: var(--bg);
   border: 1px solid transparent;
   border-radius: 999px;
-  padding: 0.45rem 0.9rem;
+  padding: 0 0.9rem;
   color: var(--ink-faint);
-  font-size: 0.88rem;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  font-size: 0.85rem;
+  transition: border-color 0.15s ease, background-color 0.15s ease, flex-basis 0.15s ease;
 }
-.nav-search:focus-within { border-color: var(--primary); background: var(--surface); }
+.nav-search svg { width: 16px; height: 16px; flex-shrink: 0; }
+.nav-search:focus-within { border-color: var(--primary); background: var(--surface); flex-basis: 260px; }
 .nav-search input {
   border: none;
   background: transparent;
   outline: none;
   font-family: var(--font-body);
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   color: var(--ink);
   width: 100%;
+  height: 100%;
 }
 
 .nav-links {
@@ -176,13 +178,16 @@ img { max-width: 100%; display: block; }
 }
 .nav-link-plain:hover { background: var(--bg); color: var(--ink); text-decoration: none; }
 
+/* CSS-only mobile menu: nav-toggle is a hidden checkbox, nav-burger is its
+   <label>, and nav-mobile-panel's visibility is driven purely by the
+   checkbox's :checked state below — no JS needed. */
+.nav-toggle-checkbox { display: none; }
+
 .nav-burger {
   display: none;
   width: 40px;
   height: 40px;
   border-radius: 50%;
-  border: none;
-  background: transparent;
   align-items: center;
   justify-content: center;
   cursor: pointer;
@@ -192,7 +197,6 @@ img { max-width: 100%; display: block; }
 .nav-burger:hover { background: var(--bg); }
 .nav-burger svg { width: 22px; height: 22px; }
 
-/* Mobile dropdown panel (built by nav.js from the same links) */
 .nav-mobile-panel {
   display: none;
   flex-direction: column;
@@ -201,7 +205,7 @@ img { max-width: 100%; display: block; }
   border-top: 1px solid var(--border);
   background: var(--surface);
 }
-.nav-mobile-panel.open { display: flex; animation: slideDown 0.18s ease; }
+.nav-toggle-checkbox:checked ~ .nav-mobile-panel { display: flex; animation: slideDown 0.18s ease; }
 .nav-mobile-panel a {
   padding: 0.65rem 0.5rem;
   border-radius: var(--radius-sm);
@@ -297,29 +301,60 @@ img { max-width: 100%; display: block; }
   border-top: 1px solid var(--border);
   margin-top: 0.75rem;
   padding-top: 0.25rem;
+  gap: 0.25rem;
 }
+/* Each like/dislike button lives in its own <form> (real POST, no JS).
+   display:contents removes the form from the box model entirely so its
+   button becomes a direct flex child of .action-row, sized exactly like
+   the plain <a> "comments" link next to it. */
+.action-row form { display: contents; }
 .action-btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
-  padding: 0.5rem;
+  gap: 0.35rem;
+  padding: 0.5rem 0.4rem;
   border: none;
   background: transparent;
   border-radius: var(--radius-sm);
   color: var(--ink-soft);
   font-weight: 600;
-  font-size: 0.88rem;
+  font-size: 0.85rem;
   cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   transition: background-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
 }
 .action-btn:hover { background: var(--bg); }
 .action-btn:active { transform: scale(0.96); }
-.action-btn svg { width: 18px; height: 18px; }
+.action-btn svg { width: 18px; height: 18px; flex-shrink: 0; }
+/* The dislike icon is the same thumbs-up path, flipped via CSS transform
+   rather than an inline SVG transform="rotate(...)" attribute — the
+   inline-attribute approach is what caused the earlier overflow/position
+   bug, since some browsers render an SVG's own rotate attribute outside
+   its element box instead of rotating in place. */
+.icon-flip { transform: rotate(180deg); transform-origin: 50% 50%; }
 .action-btn.liked { color: var(--success); }
 .action-btn.disliked { color: var(--danger); }
 .action-count { font-variant-numeric: tabular-nums; }
+
+/* View-only variant used on the read-only landing page — plain counts,
+   no buttons, no hover affordance (nothing to click). */
+.action-row.readonly { gap: 1rem; padding-top: 0.6rem; }
+.action-row.readonly .stat {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--ink-faint);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+.action-row.readonly .stat svg { width: 16px; height: 16px; }
+.action-row.readonly .stat.stat-like { color: var(--success); }
+.action-row.readonly .stat.stat-dislike { color: var(--danger); }
 
 /* ================= FORMS ================= */
 .form-card {
@@ -355,16 +390,19 @@ img { max-width: 100%; display: block; }
   background: var(--surface);
 }
 .field textarea { min-height: 150px; resize: vertical; }
-.field-error {
+.field label .optional { font-weight: 400; color: var(--ink-faint); }
+/* Server-rendered form-level error banner — populated by {{if .Error}} once
+   real validation exists (Phase 4+). No per-field JS validation anymore;
+   errors come from the server after a real form submission. */
+.form-error {
+  background: var(--danger-soft);
   color: var(--danger);
-  font-size: 0.8rem;
-  margin-top: 0.35rem;
-  display: none;
-  align-items: center;
-  gap: 0.3rem;
+  border: 1px solid var(--danger);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem 0.9rem;
+  font-size: 0.85rem;
+  margin-bottom: 1rem;
 }
-.field.has-error input, .field.has-error textarea { border-color: var(--danger); background: var(--danger-soft); }
-.field.has-error .field-error { display: flex; }
 .form-foot { margin-top: 1.1rem; font-size: 0.88rem; color: var(--ink-soft); text-align: center; }
 
 /* Chips (category picker on new-post) */
@@ -384,7 +422,6 @@ img { max-width: 100%; display: block; }
 .chip:active { transform: scale(0.96); }
 .chip input { display: none; }
 .chip:has(input:checked) { background: var(--primary-soft); border-color: var(--primary); color: var(--primary); }
-[data-require-one].has-error { outline: 2px solid var(--danger); outline-offset: 4px; border-radius: var(--radius-sm); }
 
 /* ================= EMPTY / LOADING ================= */
 .empty {
