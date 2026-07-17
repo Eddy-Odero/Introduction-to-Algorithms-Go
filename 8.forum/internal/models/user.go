@@ -3,6 +3,7 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 )
 
@@ -38,11 +39,16 @@ func (s *UserStore) CreateUser(email, username, passwordHash string) (int64, err
 		email, username, passwordHash,
 	)
 	if err != nil {
+		// modernc.org/sqlite reports UNIQUE violations as
+		// "constraint failed: UNIQUE constraint failed: users.email (2067)"
+		// — match by substring rather than exact string so this keeps
+		// working regardless of the driver's exact wrapping/error code
+		// suffix.
 		msg := err.Error()
 		switch {
-		case msg == "UNIQUE constraint failed: users.email":
+		case strings.Contains(msg, "UNIQUE constraint failed: users.email"):
 			return 0, ErrDuplicateEmail
-		case msg == "UNIQUE constraint failed: users.username":
+		case strings.Contains(msg, "UNIQUE constraint failed: users.username"):
 			return 0, ErrDuplicateUsername
 		default:
 			return 0, err
