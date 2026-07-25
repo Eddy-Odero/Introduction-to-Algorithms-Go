@@ -1,0 +1,7 @@
+forum-server
+*.db
+*.db-shm
+*.db-wal
+server
+forum.db-shm
+forum.db-wal

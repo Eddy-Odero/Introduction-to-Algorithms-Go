@@ -1,0 +1,91 @@
+{{template "base" .}}
+{{define "content"}}
+<div class="feed-column">
+    <!-- Full Post Card Display -->
+    <div class="card detail-card">
+        <h2>{{.SinglePost.Title}}</h2>
+        <div class="meta-info" style="margin-bottom: 1rem; font-size: 0.9rem; color: #e2e7f1;">
+            <span>By <strong>@{{.SinglePost.Author}}</strong></span>
+        </div>
+
+        {{if .SinglePost.ImageURL}}
+        <div class="post-image-container" style="margin: 1rem 0;">
+            <img src="{{.SinglePost.ImageURL}}" alt="{{.SinglePost.Title}}" class="post-image" style="max-height: 400px;">
+        </div>
+        {{end}}
+
+        <!-- Changed Excerpt to Content for full text display -->
+        <p class="post-body" style="margin: 1.5rem 0; line-height: 1.6; color: #e7eaee;">
+            {{.SinglePost.Content}}
+        </p>
+
+        <div class="tag-container" style="margin-bottom: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            {{range .SinglePost.Categories}}
+            <a href="/category/{{.}}" class="tag" style="background-color: #f3f4f6; padding: 0.25rem 0.75rem; border-radius: 9999px; text-decoration: none; color: #4b5563; font-size: 0.85rem;">#{{.}}</a>
+            {{end}}
+        </div>
+
+        <!-- ADDED: Standard HTML Like/Dislike Forms (No JS) -->
+        <div class="post-interactions" style="display: flex; gap: 1rem; border-top: 1px solid #e5e7eb; padding-top: 1rem;">
+    <!-- Like Form -->
+    <form action="/post/vote" method="POST" style="display: inline;">
+        <input type="hidden" name="post_id" value="{{.SinglePost.ID}}">
+        <input type="hidden" name="type" value="like">
+        <button type="submit" class="like-btn" style="background: #d1d5db; border: 1px solid #d1d5db; padding: 0.35rem 0.75rem; border-radius: 0.375rem; cursor: pointer;">
+            👍 {{.SinglePost.Likes}}
+        </button>
+    </form>
+
+    <!-- Dislike Form -->
+    <form action="/post/vote" method="POST" style="display: inline;">
+        <input type="hidden" name="post_id" value="{{.SinglePost.ID}}">
+        <input type="hidden" name="type" value="dislike">
+        <button type="submit" class="dislike-btn" style="background: #d1d5db; border: 1px solid #d1d5db; padding: 0.35rem 0.75rem; border-radius: 0.375rem; cursor: pointer;">
+            👎 {{.SinglePost.Dislikes}}
+        </button>
+    </form>
+</div>
+
+    </div>
+
+    <!-- Comments Section Container -->
+    <div class="comments-section" style="margin-top: 2rem;">
+        <h3>Discussion ({{.SinglePost.CommentCount}})</h3>
+
+        <!-- Condition Enforcing Login Rule -->
+        {{if .LoggedIn}}
+        <form action="/comment" method="POST" style="margin-bottom: 2rem; display: flex; flex-direction: column; gap: 0.75rem;">
+            <input type="hidden" name="post_id" value="{{.SinglePost.ID}}">
+            <textarea name="content" placeholder="Share your perspective on this topic..." rows="4" required 
+                      style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-family: inherit; box-sizing: border-box;"></textarea>
+            <button type="submit" class="action-btn" style="align-self: flex-start; padding: 0.5rem 1.25rem; background-color: #2563eb; color: white; border: none; border-radius: 0.375rem; cursor: pointer;">
+                Post Comment
+            </button>
+        </form>
+        {{else}}
+        <div class="auth-notice" style="background-color: #f3f4f6; border-left: 4px solid #9ca3af; padding: 1rem; margin-bottom: 2rem; border-radius: 0.25rem;">
+            <p style="margin: 0; font-size: 0.95rem; color: #4b5563;">
+                💡 You must <a href="/login" style="color: #2563eb; font-weight: 600; text-decoration: underline;">log in</a> to add a comment to this discussion.
+            </p>
+        </div>
+        {{end}}
+
+        <!-- Comments Feed Iterator -->
+        <div class="comments-list" style="display: flex; flex-direction: column; gap: 1rem;">
+            {{range .Comments}}
+            <div class="comment-item" style="background: white; border: 1px solid #e5e7eb; padding: 1rem; border-radius: 0.5rem;">
+                <div class="meta-info" style="font-size: 0.85rem; color: #6b7280; margin-bottom: 0.5rem;">
+                    <strong>@{{.Username}}</strong> commented
+                </div>
+                <p style="margin: 0 0 0.75rem 0; color: #1f2937; line-height: 1.5;">{{.Content}}</p>
+
+            </div>
+            {{else}}
+            <p style="color: #9ca3af; font-style: italic;">No thoughts shared yet. Be the first to break the silence!</p>
+            {{end}}
+        </div>
+    </div>
+</div>
+
+<aside class="sidebar-column"></aside>
+{{end}}

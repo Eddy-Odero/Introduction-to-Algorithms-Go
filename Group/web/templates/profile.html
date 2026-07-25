@@ -1,0 +1,43 @@
+{{template "base" .}}
+{{define "content"}}
+<div class="container profile-page">
+    <header class="profile-header">
+        <div class="profile-avatar">👤</div>
+        <div class="profile-meta-info">
+            <h1>{{.Username}}</h1>
+            <p class="profile-status">Active Forum Member</p>
+        </div>
+    </header>
+
+    <div class="profile-dashboard-grid">
+        <section class="profile-card-metric">
+            <h3>My Posts</h3>
+            {{if .Posts}}
+                <ul class="activity-list">
+                    {{range .Posts}}
+                    <li>📝 <a href="/post?id={{.ID}}">{{.Title}}</a></li>
+                    {{end}}
+                </ul>
+            {{else}}
+                <p>No posts yet.</p>
+            {{end}}
+        </section>
+
+        <section class="profile-card-metric stats-sidebar">
+            <h3>Engagement Stats</h3>
+            <div class="stat-row">
+                <span>Total Posts:</span>
+                <strong>{{.PostCount}}</strong>
+            </div>
+            <div class="stat-row">
+                <span>Comments Written:</span>
+                <strong>{{.CommentCount}}</strong>
+            </div>
+            <div class="stat-row">
+                <span>Likes Given:</span>
+                <strong>{{.LikesGiven}}</strong>
+            </div>
+        </section>
+    </div>
+</div>
+{{end}}
