@@ -3,106 +3,91 @@ package models
 import (
 	"database/sql"
 	"errors"
+	"strings"
 	"time"
 )
 
-// User represents a registered forum user
+// ErrDuplicateEmail is returned by CreateUser when the email is already
+// registered, so the registration handler can turn it into a clean 409
+// instead of a raw SQLite constraint error.
+var ErrDuplicateEmail = errors.New("models: email already registered")
+
+// ErrDuplicateUsername mirrors ErrDuplicateEmail for the username column.
+var ErrDuplicateUsername = errors.New("models: username already taken")
+
+// ErrNotFound is returned when a lookup finds no matching row.
+var ErrNotFound = errors.New("models: not found")
+
 type User struct {
 	ID           int64
-	Username     string
 	Email        string
+	Username     string
 	PasswordHash string
 	CreatedAt    time.Time
 }
 
-// UserRepository provides database operations for users
-type UserRepository struct {
+type UserStore struct {
 	DB *sql.DB
 }
 
-// NewUserRepository creates a new UserRepository with the given database connection
-func NewUserRepository(db *sql.DB) *UserRepository {
-	return &UserRepository{DB: db}
-}
-
-// CreateUser inserts a new user into the database
-// Returns the new user's ID or an error if email/username already exists
-func (ur *UserRepository) CreateUser(username, email, passwordHash string) (int64, error) {
-	result, err := ur.DB.Exec(
-		`INSERT INTO users (username, email, password_hash) VALUES (?, ?, ?)`,
-		username, email, passwordHash,
+// CreateUser inserts a new user row. The caller hashes the password
+// before calling this — bcrypt hashing belongs in internal/auth (Phase 4),
+// not in the data-access layer.
+func (s *UserStore) CreateUser(email, username, passwordHash string) (int64, error) {
+	res, err := s.DB.Exec(
+		`INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)`,
+		email, username, passwordHash,
 	)
 	if err != nil {
-		return 0, err
+		// modernc.org/sqlite reports UNIQUE violations as
+		// "constraint failed: UNIQUE constraint failed: users.email (2067)"
+		// — match by substring rather than exact string so this keeps
+		// working regardless of the driver's exact wrapping/error code
+		// suffix.
+		msg := err.Error()
+		switch {
+		case strings.Contains(msg, "UNIQUE constraint failed: users.email"):
+			return 0, ErrDuplicateEmail
+		case strings.Contains(msg, "UNIQUE constraint failed: users.username"):
+			return 0, ErrDuplicateUsername
+		default:
+			return 0, err
+		}
 	}
-	return result.LastInsertId()
+	return res.LastInsertId()
 }
 
-// GetUserByEmail retrieves a user by their email address
-// Returns sql.ErrNoRows if not found
-func (ur *UserRepository) GetUserByEmail(email string) (*User, error) {
-	user := &User{}
-	err := ur.DB.QueryRow(
-		`SELECT id, username, email, password_hash, created_at FROM users WHERE email = ?`,
+// GetUserByEmail looks up a user for login. Returns ErrNotFound if no row
+// matches, so the login handler can show one generic "invalid
+// credentials" message without revealing whether the email exists.
+func (s *UserStore) GetUserByEmail(email string) (*User, error) {
+	row := s.DB.QueryRow(
+		`SELECT id, email, username, password_hash, created_at FROM users WHERE email = ?`,
 		email,
-	).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CreatedAt)
-	if err != nil {
+	)
+	var u User
+	if err := row.Scan(&u.ID, &u.Email, &u.Username, &u.PasswordHash, &u.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
-	return user, nil
+	return &u, nil
 }
 
-// GetUserByUsername retrieves a user by their username
-// Returns sql.ErrNoRows if not found
-func (ur *UserRepository) GetUserByUsername(username string) (*User, error) {
-	user := &User{}
-	err := ur.DB.QueryRow(
-		`SELECT id, username, email, password_hash, created_at FROM users WHERE username = ?`,
-		username,
-	).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CreatedAt)
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
-// GetUserByID retrieves a user by their ID
-// Returns sql.ErrNoRows if not found
-func (ur *UserRepository) GetUserByID(id int64) (*User, error) {
-	user := &User{}
-	err := ur.DB.QueryRow(
-		`SELECT id, username, email, password_hash, created_at FROM users WHERE id = ?`,
+// GetUserByID looks up a user by ID — used by the session middleware in
+// Phase 4 to attach the current user to a request.
+func (s *UserStore) GetUserByID(id int64) (*User, error) {
+	row := s.DB.QueryRow(
+		`SELECT id, email, username, password_hash, created_at FROM users WHERE id = ?`,
 		id,
-	).Scan(&user.ID, &user.Username, &user.Email, &user.PasswordHash, &user.CreatedAt)
-	if err != nil {
+	)
+	var u User
+	if err := row.Scan(&u.ID, &u.Email, &u.Username, &u.PasswordHash, &u.CreatedAt); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNotFound
+		}
 		return nil, err
 	}
-	return user, nil
+	return &u, nil
 }
-
-// EmailExists checks if an email is already registered
-func (ur *UserRepository) EmailExists(email string) (bool, error) {
-	var exists bool
-	err := ur.DB.QueryRow(
-		`SELECT EXISTS(SELECT 1 FROM users WHERE email = ?)`,
-		email,
-	).Scan(&exists)
-	return exists, err
-}
-
-// UsernameExists checks if a username is already taken
-func (ur *UserRepository) UsernameExists(username string) (bool, error) {
-	var exists bool
-	err := ur.DB.QueryRow(
-		`SELECT EXISTS(SELECT 1 FROM users WHERE username = ?)`,
-		username,
-	).Scan(&exists)
-	return exists, err
-}
-
-// Common errors
-var (
-	ErrUserNotFound  = errors.New("user not found")
-	ErrEmailTaken    = errors.New("email already taken")
-	ErrUsernameTaken = errors.New("username already taken")
-)

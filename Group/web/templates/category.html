@@ -1,66 +1,13 @@
-{{template "base" .}}
 {{define "content"}}
-<div class="feed-column">
-    <div class="hero-banner" style="text-align: left; padding: 1.5rem 2rem;">
-        <span class="tag" style="font-size: 1rem; padding: 0.4rem 1rem; margin-bottom: 0.5rem; display: inline-block;">#{{.CategoryName}}</span>
-        <p style="color: #9ca3af; margin-top: 0.5rem;">Showing all discussions tagged under <strong style="color: #f3f4f6;">{{.CategoryName}}</strong></p>
-    </div>
+<main class="container">
+  <div class="category-hero hero-{{.CategoryName}}">
+    <span class="eyebrow">subforum</span>
+    <h1>#{{.CategoryName}}</h1>
+    <p>Posts tagged {{.CategoryName}}, newest first.</p>
+  </div>
 
-    <h2 class="section-title">📂 {{.CategoryName}} Posts</h2>
-    <div class="feed">
-        {{range .Posts}}
-        <div class="card">
-            <h3><a href="/post?id={{.ID}}">{{.Title}}</a></h3>
-            <div class="meta-info">
-                <span>By <strong>@{{.Author}}</strong></span>
-            </div>
-            <p style="color: #9ca3af; font-size: 0.95rem; margin-bottom: 1rem; line-height: 1.5;">{{.Excerpt}}</p>
-            <div class="tag-container">
-                {{range .Categories}}
-                <a href="/category/{{.}}" class="tag">#{{.}}</a>
-                {{end}}
-            </div>
-            <div class="reactions">
-                <form action="/post/vote" method="POST" style="display: inline-flex; gap: 0.5rem;">
-                    <input type="hidden" name="post_id" value="{{.ID}}">
-                    <input type="hidden" name="type" value="like">
-                    <button type="submit" class="inline-btn {{if eq (index $.UserVotes .ID) "like"}}active-like{{end}}">
-                        👍 <span>{{.Likes}}</span>
-                    </button>
-                </form>
-                <form action="/post/vote" method="POST" style="display: inline-flex; gap: 0.5rem;">
-                    <input type="hidden" name="post_id" value="{{.ID}}">
-                    <input type="hidden" name="type" value="dislike">
-                    <button type="submit" class="inline-btn {{if eq (index $.UserVotes .ID) "dislike"}}active-dislike{{end}}">
-                        👎 <span>{{.Dislikes}}</span>
-                    </button>
-                </form>
-                <span class="comment-count">💬 {{.CommentCount}} comments</span>
-            </div>
-        </div>
-        {{else}}
-        <div class="card" style="text-align: center; padding: 4rem 1rem;">
-            <p style="color: #9ca3af; font-size: 1.1rem;">No posts in this category yet.</p>
-            {{if .LoggedIn}}
-            <a href="/new-post" class="inline-btn" style="margin-top: 1rem; background: #3b82f6; color: white; border: none; text-decoration: none; display: inline-block;">Create New Post</a>
-            {{else}}
-            <a href="/login" class="inline-btn" style="margin-top: 1rem;">Log in to post</a>
-            {{end}}
-        </div>
-        {{end}}
-    </div>
-</div>
-
-<aside class="sidebar-column">
-    <div class="sidebar-panel">
-        <h4>Explore Categories</h4>
-        <ul class="sidebar-list">
-            <li><a href="/category/Tech"># Tech</a></li>
-            <li><a href="/category/Football"># Football</a></li>
-            <li><a href="/category/Gaming"># Gaming</a></li>
-            <li><a href="/category/Music"># Music</a></li>
-            <li><a href="/category/Movies"># Movies</a></li>
-        </ul>
-    </div>
-</aside>
+  <div class="feed">
+    {{range .Posts}}{{template "postcard" .}}{{end}}
+  </div>
+</main>
 {{end}}
