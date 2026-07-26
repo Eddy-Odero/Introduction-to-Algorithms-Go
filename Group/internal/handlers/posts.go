@@ -46,11 +46,17 @@ func HomeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	user := getUser(r)
+	userVotes := make(map[int]string)
+	if user.LoggedIn {
+		reactionRepo := models.NewReactionRepository(db.DB)
+		userVotes, _ = reactionRepo.GetUserPostVotes(int(user.ID))
+	}
+
 	data := PostPageData{
 		Posts:     posts,
 		LoggedIn:  user.LoggedIn,
 		Username:  user.Username,
-		UserVotes: make(map[int]string),
+		UserVotes: userVotes,
 	}
 
 	renderTemplate(w, "index.html", data)
@@ -75,7 +81,6 @@ func CategoryHandler(w http.ResponseWriter, r *http.Request, categoryName string
 
 	renderTemplate(w, "category.html", data)
 }
-
 func PostDetailHandler(w http.ResponseWriter, r *http.Request, postID int) {
 	postRepo := models.NewPostRepository(db.DB)
 	post, err := postRepo.GetByID(postID)
@@ -88,13 +93,34 @@ func PostDetailHandler(w http.ResponseWriter, r *http.Request, postID int) {
 		return
 	}
 
+	commentRepo := models.NewCommentRepository(db.DB)
+	modelComments, err := commentRepo.GetCommentsByPost(int64(postID))
+	if err != nil {
+		http.Error(w, "Failed to load comments", http.StatusInternalServerError)
+		return
+	}
+	comments := make([]Comment, 0, len(modelComments))
+	for _, c := range modelComments {
+		comments = append(comments, Comment{
+			ID:      int(c.ID),
+			Author:  c.Username,
+			Content: c.Content,
+		})
+	}
+
 	user := getUser(r)
+	userVotes := make(map[int]string)
+	if user.LoggedIn {
+		reactionRepo := models.NewReactionRepository(db.DB)
+		userVotes, _ = reactionRepo.GetUserPostVotes(int(user.ID))
+	}
+
 	data := PostPageData{
 		LoggedIn:   user.LoggedIn,
 		Username:   user.Username,
 		SinglePost: *post,
-		UserVotes:  make(map[int]string),
-		Comments:   []Comment{},
+		UserVotes:  userVotes,
+		Comments:   comments,
 	}
 
 	renderTemplate(w, "post-detail.html", data)

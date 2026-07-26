@@ -72,28 +72,6 @@ func (r *ReactionRepository) SetCommentReaction(userID, commentID int, reactionT
 	}
 }
 
-func (r *ReactionRepository) CountPostReactions(postID int) (likes, dislikes int, err error) {
-	err = r.db.QueryRow(
-		`SELECT
-			COUNT(CASE WHEN type = 'like' THEN 1 END),
-			COUNT(CASE WHEN type = 'dislike' THEN 1 END)
-		 FROM reactions WHERE post_id = ?`,
-		postID,
-	).Scan(&likes, &dislikes)
-	return
-}
-
-func (r *ReactionRepository) CountCommentReactions(commentID int) (likes, dislikes int, err error) {
-	err = r.db.QueryRow(
-		`SELECT
-			COUNT(CASE WHEN type = 'like' THEN 1 END),
-			COUNT(CASE WHEN type = 'dislike' THEN 1 END)
-		 FROM reactions WHERE comment_id = ?`,
-		commentID,
-	).Scan(&likes, &dislikes)
-	return
-}
-
 func (r *ReactionRepository) GetUserPostVotes(userID int) (map[int]string, error) {
 	votes := make(map[int]string)
 	rows, err := r.db.Query(
@@ -113,4 +91,15 @@ func (r *ReactionRepository) GetUserPostVotes(userID int) (map[int]string, error
 		votes[id] = t
 	}
 	return votes, rows.Err()
+}
+
+// CountLikesGivenByUserID returns how many "like" reactions this user has
+// made across posts and comments combined — used on the profile page.
+func (r *ReactionRepository) CountLikesGivenByUserID(userID int) (int, error) {
+	var count int
+	err := r.db.QueryRow(
+		`SELECT COUNT(*) FROM reactions WHERE user_id = ? AND type = 'like'`,
+		userID,
+	).Scan(&count)
+	return count, err
 }

@@ -4,19 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
+	"forum/internal/db"
 	"forum/internal/middleware"
 	"forum/internal/models"
 )
 
-type ReactionHandler struct {
-	repo *models.ReactionRepository
-}
-
-func NewReactionHandler(repo *models.ReactionRepository) *ReactionHandler {
-	return &ReactionHandler{repo: repo}
-}
-
-func (h *ReactionHandler) CreateReaction(w http.ResponseWriter, r *http.Request) {
+func CreateReactionHandler(w http.ResponseWriter, r *http.Request) {
 	user := middleware.GetUserFromContext(r)
 	if !user.LoggedIn {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -38,11 +31,12 @@ func (h *ReactionHandler) CreateReaction(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
+	reactionRepo := models.NewReactionRepository(db.DB)
 	switch targetType {
 	case "post":
-		err = h.repo.SetPostReaction(int(user.ID), targetID, value)
+		err = reactionRepo.SetPostReaction(int(user.ID), targetID, value)
 	case "comment":
-		err = h.repo.SetCommentReaction(int(user.ID), targetID, value)
+		err = reactionRepo.SetCommentReaction(int(user.ID), targetID, value)
 	default:
 		http.Error(w, "Invalid target type", http.StatusBadRequest)
 		return

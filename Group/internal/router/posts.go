@@ -66,6 +66,8 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 	// Get actual comment count
 	commentRepo := models.NewCommentRepository(db.DB)
 	commentCount, _ := commentRepo.CountCommentsByUserID(int64(user.ID))
+	reactionRepo := models.NewReactionRepository(db.DB)
+	likesGiven, _ := reactionRepo.CountLikesGivenByUserID(int(user.ID))
 
 	// Convert models.Post to router.Post with ALL fields
 	var pagePosts []Post
@@ -83,15 +85,14 @@ func profileHandler(w http.ResponseWriter, r *http.Request) {
 			CommentCount: p.CommentCount,
 		})
 	}
-
-	data := PageData{
+data := PageData{
 		LoggedIn:      true,
 		Username:      user.Username,
 		CurrentFilter: filter,
 		Posts:         pagePosts,
 		PostCount:     len(pagePosts),
-		CommentCount:  int(commentCount),  // ← NOW ACTUAL COUNT
-		LikesGiven:    0,                  // Phase 7 will fill
+		CommentCount:  int(commentCount),
+		LikesGiven:    likesGiven,
 	}
 
 	RenderTemplate(w, "profile.html", data)

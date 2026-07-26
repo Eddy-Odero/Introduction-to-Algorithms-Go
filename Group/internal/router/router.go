@@ -72,6 +72,7 @@ func SetupRouter(routerUIDir string) *http.ServeMux {
 	// Phase 6: Comment routes
 	commentHandler := handlers.NewCommentHandler(models.NewCommentRepository(db.DB))
 	mux.HandleFunc("POST /comment", middleware.RequireAuth(commentHandler.CreateComment))
+    mux.HandleFunc("POST /react", middleware.RequireAuth(handlers.CreateReactionHandler))
 
 	// Catch-all for 404
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
