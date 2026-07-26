@@ -1,36 +1,35 @@
+{{template "base" .}}
 {{define "content"}}
-<div class="auth-screen">
-  <div class="auth-side">
-    <div class="brand-mark">f</div>
-    <h2>Join the community</h2>
-    <p>Post what you're building, ask the questions you're stuck on, and help the next person get unstuck too.</p>
-  </div>
-  <div class="auth-form-side">
-    <form class="form-card card" action="/register" method="POST">
-      <h1>Create your account</h1>
-      <p class="subtitle">Takes less than a minute.</p>
+<div class="post-creation-card">
+    <div class="card" style="padding: 2.5rem;">
+        <h2 style="text-align: center; margin-bottom: 0.5rem; font-size: 1.8rem;">Join PulseNet</h2>
+        <p style="text-align: center; color: #9ca3af; margin-bottom: 2rem;">Create your account to start sharing</p>
 
-      {{if .Error}}<div class="form-error">{{.Error}}</div>{{end}}
+        {{if .Error}}
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #ef4444; color: #ef4444; padding: 0.75rem 1rem; border-radius: 8px; margin-bottom: 1.5rem; font-size: 0.9rem;">
+            {{.Error}}
+        </div>
+        {{end}}
 
-      <div class="field">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-      </div>
+        <form action="/register" method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" placeholder="johndoe" required>
+            </div>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn-block" style="background: #8b5cf6; color: white;">Create Account</button>
+        </form>
 
-      <div class="field">
-        <label for="username">Username</label>
-        <input type="text" id="username" name="username" required>
-      </div>
-
-      <div class="field">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required minlength="8">
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-block">Create account</button>
-
-      <p class="form-foot">Already registered? <a href="/login">Log in</a></p>
-    </form>
-  </div>
+        <p style="text-align: center; margin-top: 1.5rem; color: #9ca3af; font-size: 0.9rem;">
+            Already have an account? <a href="/login" style="color: #3b82f6; font-weight: 600;">Sign In</a>
+        </p>
+    </div>
 </div>
 {{end}}

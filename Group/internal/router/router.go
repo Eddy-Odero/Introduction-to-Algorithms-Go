@@ -1,53 +1,98 @@
-// Package router builds the top-level http.Handler for the forum.
 package router
 
 import (
-	"net/http"
-
+	"forum/internal/db"
 	"forum/internal/handlers"
+	"forum/internal/middleware"
+	"forum/internal/models"
+	"html/template"
+	"net/http"
+	"path/filepath"
 )
 
-const staticDir = "web/static"
+type Post struct {
+	ID           int
+	Title        string
+	Author       string
+	Excerpt      string
+	Content      string
+	ImageURL     string
+	Categories   []string
+	Likes        int
+	Dislikes     int
+	CommentCount int
+}
 
-// New builds the mux. Every page is rendered by a handler in
-// internal/handlers — no generic static-file-to-page mapping anymore,
-// since pages are now Go templates with real data, not flat HTML files.
-func New() http.Handler {
+type Comment struct {
+	ID       int
+	Author   string
+	Content  string
+	Likes    int
+	Dislikes int
+}
+
+type PageData struct {
+	LoggedIn      bool
+	CategoryName  string
+	CurrentFilter string
+	Posts         []Post
+	SinglePost    Post
+	Comments      []Comment
+	PostCount     int
+	CommentCount  int
+	LikesGiven    int
+	Error         string
+	Email         string
+	Username      string
+	UserVotes     map[int]string
+	CommentVotes  map[int]string
+}
+
+var uiDir string
+
+func SetupRouter(routerUIDir string) *http.ServeMux {
 	mux := http.NewServeMux()
+	uiDir = routerUIDir
 
-	fileServer := http.FileServer(http.Dir(staticDir))
+	// Static files
+	fileServer := http.FileServer(http.Dir(routerUIDir + "/static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
 
+	// Phase 5: All post routes
+	RegisterPostRoutes(mux)
+
+	// Phase 4: Auth routes (real session-based)
+	mux.HandleFunc("GET /login", handlers.LoginPageHandler)
+	mux.HandleFunc("POST /login", handlers.LoginHandler)
+	mux.HandleFunc("GET /register", handlers.RegisterPageHandler)
+	mux.HandleFunc("POST /register", handlers.RegisterHandler)
+	mux.HandleFunc("GET /logout", handlers.LogoutHandler)
+	mux.HandleFunc("POST /logout", handlers.LogoutHandler)
+
+	// Phase 6: Comment routes
+	commentHandler := handlers.NewCommentHandler(models.NewCommentRepository(db.DB))
+	mux.HandleFunc("POST /comment", middleware.RequireAuth(commentHandler.CreateComment))
+
+	// Catch-all for 404
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
-			handlers.NotFound(w, r)
+			middleware.CustomNotFoundHandler(w, r)
 			return
 		}
-		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		handlers.Home(w, r)
 	})
-
-	get(mux, "/login", handlers.Login)
-	get(mux, "/register", handlers.Register)
-	get(mux, "/new-post", handlers.NewPost)
-	get(mux, "/post", handlers.PostDetail)
-	get(mux, "/category", handlers.Category)
-	get(mux, "/profile", handlers.Profile)
 
 	return mux
 }
 
-// get registers a GET-only route, rejecting other methods with 405 instead
-// of silently falling through to whatever the mux would otherwise do.
-func get(mux *http.ServeMux, pattern string, h http.HandlerFunc) {
-	mux.HandleFunc(pattern, func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodGet {
-			http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
-			return
-		}
-		h(w, r)
-	})
+func RenderTemplate(w http.ResponseWriter, templateName string, data interface{}) {
+	tmpl, err := template.ParseFiles(
+		filepath.Join(uiDir, "templates", "base.html"),
+		filepath.Join(uiDir, "templates", templateName),
+	)
+	if err != nil {
+		http.Error(w, "Template error: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	tmpl.ExecuteTemplate(w, "base", data)
 }
