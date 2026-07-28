@@ -1,36 +1,37 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"os"
+	"strings"
 )
 
 func main() {
-	file, err := os.Open("input.txt")
+	// Read the whole file
+	data, err := os.ReadFile("input.txt")
 	if err != nil {
-		fmt.Println("Error opening file:", err)
+		fmt.Println("Error reading file:", err)
 		return
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	// Convert the file to a string and split into lines
+	lines := strings.Split(strings.TrimSpace(string(data)), "\n")
 
 	totalPaper := 0
 
-	for scanner.Scan() {
+	for _, line := range lines {
 		var l, w, h int
 
-		// Read dimensions in the form LxWxH
-		fmt.Sscanf(scanner.Text(), "%dx%dx%d", &l, &w, &h)
+		// Read dimensions like "2x3x4"
+		fmt.Sscanf(line, "%dx%dx%d", &l, &w, &h)
 
-		// Areas of the three sides
+		// Calculate the area of each side
 		side1 := l * w
 		side2 := w * h
 		side3 := h * l
 
 		// Surface area
-		surfaceArea := 2*side1 + 2*side2 + 2*side3
+		surface := 2*side1 + 2*side2 + 2*side3
 
 		// Find the smallest side
 		smallest := side1
@@ -41,14 +42,8 @@ func main() {
 			smallest = side3
 		}
 
-		// Total paper for this present
-		totalPaper += surfaceArea + smallest
+		totalPaper += surface + smallest
 	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
-		return
-	}
-
-	fmt.Println("Total wrapping paper needed:", totalPaper)
+	fmt.Println("Total wrapping paper:", totalPaper)
 }
